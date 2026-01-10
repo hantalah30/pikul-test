@@ -563,6 +563,8 @@ window.trackOrder = (vid) => {
   renderMapChips();
   window.go("Map");
 };
+
+// --- CHAT SYSTEM (UPDATED FOR MOBILE IMMERSIVE) ---
 window.toggleAttachMenu = () => {
   $("#attachMenu").classList.toggle("visible");
 };
@@ -691,8 +693,18 @@ $("#sendChatBtn").addEventListener("click", () => {
     $("#chatInput").value = "";
   }
 });
+
+// Chat Render Logic with Immersive Mode
 async function renderChat() {
   const vid = state.chatWithVendorId;
+
+  // Enter Immersive Mobile Mode
+  if (window.innerWidth < 768) {
+    $(".chat-container").classList.add("mobile-mode");
+    $("#mainHeader").classList.add("hidden"); // Hide Main Header
+    $(".bottomNav").classList.add("hidden"); // Hide Bottom Nav
+  }
+
   if (!vid) {
     $("#chatWith").textContent = "Pilih Pedagang";
     $("#chatBox").innerHTML =
@@ -742,19 +754,14 @@ async function renderChat() {
             m.text
           }</div>`;
         else
-          contentHtml = `<div class="bubble ${
-            isMe ? "me" : "them"
-          }"><div class="bubble-content">${m.text}</div></div>`;
-        if (m.type === "text") {
           contentHtml = `<div class="bubble ${isMe ? "me" : "them"}">${
             m.text
           }<div class="bubble-meta"><span class="bubble-time">${timeStr}</span>${
             isMe ? '<span class="bubble-status">✓✓</span>' : ""
           }</div></div>`;
-        }
         return `${dateHeader}<div style="display:flex; justify-content:${
           isMe ? "flex-end" : "flex-start"
-        }; margin-bottom:4px; max-width:85%; align-self:${
+        }; margin-bottom:4px; max-width:95%; align-self:${
           isMe ? "flex-end" : "flex-start"
         }">${contentHtml}</div>`;
       })
@@ -762,6 +769,17 @@ async function renderChat() {
     $("#chatBox").scrollTop = $("#chatBox").scrollHeight;
   });
 }
+
+// Exit Immersive Mobile Mode
+window.closeChatMobile = () => {
+  state.chatWithVendorId = null;
+  $(".chat-container").classList.remove("mobile-mode");
+  $("#mainHeader").classList.remove("hidden");
+  $(".bottomNav").classList.remove("hidden");
+  // Optionally go back to Pick Chat list
+  window.openPickChat();
+};
+
 window.openPickChat = () => {
   if (!state.user) return requireLogin();
   const list = state.vendors.length
@@ -781,6 +799,49 @@ window.selectChat = (id) => {
   closeModal("pickChatModal");
   renderChat();
 };
+
+// --- CHAT VENDOR BTN (MODAL) ---
+$("#chatVendorBtn").addEventListener("click", () => {
+  if (!state.user) return requireLogin();
+  if (state.selectedVendorId) {
+    state.chatWithVendorId = state.selectedVendorId;
+    closeModal("vendorModal");
+    window.go("Messages"); // This calls renderChat()
+  } else {
+    showToast("Error: ID Vendor");
+  }
+});
+
+// --- NAVIGATION ---
+window.go = (n) => {
+  if ((n === "Orders" || n === "Messages") && !state.user) {
+    requireLogin();
+    return;
+  }
+  Object.values(screens).forEach((e) => e.classList.add("hidden"));
+  screens[n].classList.remove("hidden");
+
+  // Normal Navigation Reset
+  if (n !== "Messages") {
+    $("#mainHeader").classList.remove("hidden");
+    $(".bottomNav").classList.remove("hidden");
+  }
+
+  $$(".nav").forEach((b) => b.classList.toggle("active", b.dataset.go === n));
+  if (n === "Map") {
+    initMap();
+    setTimeout(() => state.map.invalidateSize(), 300);
+  }
+  if (n === "Messages") {
+    if (!state.chatWithVendorId) window.openPickChat();
+    else renderChat();
+  }
+};
+$$(".nav").forEach((b) =>
+  b.addEventListener("click", () => window.go(b.dataset.go))
+);
+
+// --- MENU & CART (SAME) ---
 const MENU_DEFAULTS = {
   bakso: [{ id: "m1", name: "Bakso Urat", price: 15000 }],
   kopi: [{ id: "k1", name: "Kopi Susu", price: 12000 }],
@@ -1099,39 +1160,6 @@ function renderOrders() {
     })
     .join("");
 }
-$("#chatVendorBtn").addEventListener("click", () => {
-  if (!state.user) return requireLogin();
-  if (state.selectedVendorId) {
-    state.chatWithVendorId = state.selectedVendorId;
-    closeModal("vendorModal");
-    window.go("Messages");
-  } else {
-    showToast("Error: ID Vendor");
-  }
-});
-function getChatId() {
-  return `${state.user.id}_${state.chatWithVendorId}`;
-}
-window.go = (n) => {
-  if ((n === "Orders" || n === "Messages") && !state.user) {
-    requireLogin();
-    return;
-  }
-  Object.values(screens).forEach((e) => e.classList.add("hidden"));
-  screens[n].classList.remove("hidden");
-  if (n === "Messages" && window.innerWidth < 768)
-    $("#mainHeader").classList.add("hidden");
-  else $("#mainHeader").classList.remove("hidden");
-  $$(".nav").forEach((b) => b.classList.toggle("active", b.dataset.go === n));
-  if (n === "Map") {
-    initMap();
-    setTimeout(() => state.map.invalidateSize(), 300);
-  }
-  if (n === "Messages") renderChat();
-};
-$$(".nav").forEach((b) =>
-  b.addEventListener("click", () => window.go(b.dataset.go))
-);
 function renderProfile() {
   const container = $("#profileContent");
   if (state.user) {
@@ -1172,11 +1200,11 @@ function showToast(m, type = "info") {
     c.className = "toast-container";
     document.body.appendChild(c);
   }
-  const e = document.createElement("div");
-  e.className = "toast";
-  e.innerHTML = m;
-  c.appendChild(e);
-  setTimeout(() => e.remove(), 3000);
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
 }
 function initTheme() {
   const d = localStorage.getItem("pikul_theme") === "dark";
