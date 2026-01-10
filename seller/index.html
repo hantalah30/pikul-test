@@ -109,15 +109,25 @@
         background: white;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        padding: 40px;
-        overflow-y: auto;
+        /* justify-content: center;  <-- Removed to prevent centering issues on small screens */
+        padding: 20px;
+        overflow-y: auto; /* Enable scroll */
+        height: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Center content if screen is tall enough */
+      @media (min-height: 700px) {
+        .auth-form-side {
+          justify-content: center;
+        }
       }
 
       .auth-card {
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
+        padding: 10px 0;
       }
       .brand-header {
         display: flex;
@@ -192,11 +202,11 @@
         cursor: pointer;
         transition: 0.2s;
         margin-top: 10px;
+        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.25);
       }
       .btn-auth:hover {
         background: var(--primary-dark);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.25);
       }
       .btn-auth:active {
         transform: translateY(0);
@@ -218,23 +228,33 @@
         text-decoration: underline;
       }
 
-      .back-link {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 6px;
+      /* UPDATED: Customer Link Styling */
+      .customer-link-container {
+        margin-top: 40px;
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px dashed #e2e8f0;
       }
-      .back-link:hover {
+      .customer-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 12px 24px;
+        background: #f1f5f9;
+        border-radius: 50px;
+        transition: 0.2s;
+      }
+      .customer-link:hover {
+        background: #e2e8f0;
         color: var(--primary);
+        transform: translateY(-2px);
       }
 
-      /* App Layout Styles (Existing) */
+      /* App Layout Styles */
       .app-layout {
         display: flex;
         height: 100vh;
@@ -260,7 +280,7 @@
         position: relative;
       }
 
-      /* --- CHAT & OTHER STYLES (Keep Existing) --- */
+      /* --- CHAT & OTHER STYLES --- */
       .chat-layout {
         display: flex;
         height: calc(100vh - 140px);
@@ -752,8 +772,6 @@
         </div>
 
         <div class="auth-form-side">
-          <a href="../index.html" class="back-link">← Buka Aplikasi Customer</a>
-
           <div class="auth-card">
             <div class="brand-header">
               <img src="../Mitra-Pikul.png" class="brand-logo" />
@@ -847,6 +865,12 @@
                 >
               </div>
             </form>
+
+            <div class="customer-link-container">
+              <a href="../index.html" class="customer-link"
+                >📱 Buka Aplikasi Customer</a
+              >
+            </div>
           </div>
         </div>
       </div>

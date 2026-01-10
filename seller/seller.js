@@ -91,15 +91,12 @@ window.switchAuthMode = (mode) => {
   const tabs = $$(".auth-tab");
   const forms = $$(".auth-form");
   if (mode === "login") {
-    tabs[0].classList.add("active");
-    tabs[1].classList.remove("active");
-    forms[0].classList.remove("hidden");
-    forms[1].classList.add("hidden");
+    // Check if these elements exist, otherwise handle simplified switching
+    $("#loginForm").classList.remove("hidden");
+    $("#registerForm").classList.add("hidden");
   } else {
-    tabs[1].classList.add("active");
-    tabs[0].classList.remove("active");
-    forms[1].classList.remove("hidden");
-    forms[0].classList.add("hidden");
+    $("#loginForm").classList.add("hidden");
+    $("#registerForm").classList.remove("hidden");
   }
 };
 $("#loginForm").addEventListener("submit", async (e) => {
