@@ -461,7 +461,7 @@ window.sendLocation = () => {
   }
 
   // Generate Google Maps URL
-  const mapsUrl = `https://www.google.com/maps?q=${state.you.lat},${state.you.lon}`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${state.you.lat},${state.you.lon}`;
   sendMessage(mapsUrl, "location");
 };
 

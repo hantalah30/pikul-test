@@ -41,7 +41,7 @@
         color: var(--text);
       }
 
-      /* --- AUTH STYLES --- */
+      /* --- AUTH STYLES (UPDATED FOR MOBILE) --- */
       .auth-page {
         width: 100%;
         height: 100vh;
@@ -92,24 +92,38 @@
         opacity: 0.95;
         font-weight: 500;
       }
+
+      /* Form Container Scrollable fix for Mobile */
       .auth-form-container {
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
-        padding: 40px 20px;
+        padding: 20px;
         background: white;
+        overflow-y: auto; /* Allow scroll if screen is small */
+        height: 100%;
+        justify-content: center; /* Center vertically if space allows */
       }
+      /* Fallback for very small screens */
+      @media (max-height: 600px) {
+        .auth-form-container {
+          justify-content: flex-start;
+          padding-top: 40px;
+        }
+      }
+
       .auth-card {
         width: 100%;
-        max-width: 420px;
+        max-width: 400px;
+        padding: 10px;
+        box-sizing: border-box;
       }
       .brand-header {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
       }
       .brand-logo {
         width: 48px;
@@ -124,32 +138,27 @@
         letter-spacing: -0.5px;
       }
       .auth-title {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 8px;
         letter-spacing: -0.5px;
       }
-      .auth-subtitle {
-        color: var(--text-muted);
-        margin-bottom: 32px;
-        font-size: 16px;
-      }
       .input-group {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
       .input-label {
         display: block;
         font-size: 13px;
         font-weight: 600;
         color: #475569;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .input-field {
         width: 100%;
-        padding: 16px;
+        padding: 14px;
         border: 2px solid #e2e8f0;
-        border-radius: 14px;
+        border-radius: 12px;
         font-size: 15px;
         outline: none;
         transition: 0.2s;
@@ -175,15 +184,14 @@
         cursor: pointer;
         transition: 0.2s;
         margin-top: 10px;
+        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
       }
-      .btn-auth:hover {
-        background: var(--primary-dark);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(255, 122, 0, 0.2);
+      .btn-auth:active {
+        transform: scale(0.98);
       }
       .switch-text {
         text-align: center;
-        margin-top: 24px;
+        margin-top: 20px;
         color: #64748b;
         font-size: 14px;
       }
@@ -194,17 +202,28 @@
         text-decoration: none;
         margin-left: 4px;
       }
+
+      /* SELLER LINK FIX */
+      .seller-link-container {
+        margin-top: 40px;
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px dashed #e2e8f0;
+      }
       .seller-link {
-        position: absolute;
-        bottom: 30px;
-        color: #94a3b8;
-        font-size: 13px;
+        display: inline-block;
+        color: #64748b;
+        font-size: 14px;
         text-decoration: none;
-        font-weight: 500;
+        font-weight: 600;
+        padding: 10px 20px;
+        background: #f1f5f9;
+        border-radius: 20px;
         transition: 0.2s;
       }
       .seller-link:hover {
-        color: var(--primary);
+        background: #e2e8f0;
+        color: var(--text);
       }
 
       /* --- APP LAYOUT --- */
@@ -1393,7 +1412,12 @@
               >
             </div>
           </form>
-          <a href="seller/index.html" class="seller-link">Ingin berjualan?</a>
+
+          <div class="seller-link-container">
+            <a href="seller/index.html" class="seller-link"
+              >🛍️ Ingin berjualan di PIKUL?</a
+            >
+          </div>
         </div>
       </div>
     </main>
