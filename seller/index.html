@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <title>PIKUL Mitra - Kelola Usahamu</title>
+    <link rel="icon" type="image/jpeg" href="../Mitra-Pikul.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <style>
+      :root {
+        --primary: #ff7a00;
+        --primary-dark: #c2410c;
+        --bg: #f8fafc;
+        --border: #e2e8f0;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      body {
+        margin: 0;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background: var(--bg);
+        height: 100vh;
+        overflow: hidden;
+        color: var(--text);
+      }
+
+      /* --- NEW AUTH LAYOUT --- */
+      .auth-page {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+      }
+
+      .auth-split {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* Left Side (Visual) */
+      .auth-visual {
+        flex: 1;
+        background: linear-gradient(135deg, #ff7a00, #ff9a3d);
+        position: relative;
+        display: none; /* Hidden on mobile */
+        flex-direction: column;
+        justify-content: center;
+        padding: 60px;
+        color: white;
+        overflow: hidden;
+      }
+      .auth-visual::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.15;
+        mix-blend-mode: multiply;
+      }
+      .visual-content {
+        position: relative;
+        z-index: 2;
+        max-width: 480px;
+      }
+      .visual-content h1 {
+        font-size: 48px;
+        line-height: 1.1;
+        margin-bottom: 24px;
+        font-weight: 800;
+        letter-spacing: -1px;
+      }
+      .visual-content p {
+        font-size: 18px;
+        line-height: 1.6;
+        opacity: 0.9;
+      }
+
+      /* Right Side (Form) */
+      .auth-form-side {
+        flex: 1;
+        max-width: 600px;
+        width: 100%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 40px;
+        overflow-y: auto;
+      }
+
+      .auth-card {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      .brand-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 32px;
+      }
+      .brand-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+      }
+      .brand-text {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.5px;
+      }
+
+      .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #0f172a;
+      }
+      .auth-subtitle {
+        color: var(--text-muted);
+        margin-bottom: 32px;
+        font-size: 15px;
+      }
+
+      /* Form Elements */
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+      }
+      .form-input,
+      .form-select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        font-size: 15px;
+        outline: none;
+        transition: 0.2s;
+        background: #f8fafc;
+        color: #334155;
+        box-sizing: border-box;
+      }
+      .form-input:focus,
+      .form-select:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.1);
+      }
+
+      .btn-auth {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        background: var(--primary);
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+      }
+      .btn-auth:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.25);
+      }
+      .btn-auth:active {
+        transform: translateY(0);
+      }
+
+      .auth-switch {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 14px;
+        color: #64748b;
+      }
+      .auth-link {
+        color: var(--primary);
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .auth-link:hover {
+        text-decoration: underline;
+      }
+
+      .back-link {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .back-link:hover {
+        color: var(--primary);
+      }
+
+      /* App Layout Styles (Existing) */
+      .app-layout {
+        display: flex;
+        height: 100vh;
+      }
+      .sidebar {
+        width: 260px;
+        background: white;
+        border-right: 1px solid var(--border);
+        display: none;
+        flex-direction: column;
+      }
+      .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        position: relative;
+      }
+
+      /* --- CHAT & OTHER STYLES (Keep Existing) --- */
+      .chat-layout {
+        display: flex;
+        height: calc(100vh - 140px);
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+        border: 1px solid var(--border);
+      }
+      .chat-sidebar {
+        width: 100%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+      }
+      .chat-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+      .chat-entry {
+        padding: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: 0.2s;
+      }
+      .chat-entry:active {
+        background: #f8fafc;
+      }
+      .chat-entry.active {
+        background: #fff7ed;
+        border-left: 3px solid var(--primary);
+      }
+      .chat-room {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fdfdfd;
+        display: flex;
+        flex-direction: column;
+        z-index: 20;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .chat-room.active {
+        transform: translateX(0);
+      }
+      .chat-room-header {
+        height: 60px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        flex-shrink: 0;
+      }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        background-color: #f0f2f5;
+        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+        background-size: 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .chat-input-bar {
+        padding: 10px 16px;
+        background: white;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        position: relative;
+      }
+      .reply-input {
+        flex: 1;
+        height: 40px;
+        border: 1px solid #cbd5e1;
+        padding: 0 16px;
+        border-radius: 20px;
+        outline: none;
+        font-size: 14px;
+      }
+      .reply-input:focus {
+        border-color: var(--primary);
+      }
+      .btn-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        transition: 0.2s;
+        flex-shrink: 0;
+      }
+      .btn-back {
+        background: transparent;
+        color: var(--text);
+        font-size: 24px;
+        margin-right: -8px;
+      }
+      .btn-attach {
+        background: #f1f5f9;
+        color: var(--text-muted);
+      }
+      .btn-send {
+        background: var(--primary);
+        color: white;
+        padding-left: 4px;
+      }
+      .bubble {
+        padding: 10px 14px;
+        border-radius: 16px;
+        max-width: 75%;
+        font-size: 14px;
+        line-height: 1.4;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+        position: relative;
+      }
+      .bubble.me {
+        background: var(--primary);
+        color: white;
+        border-bottom-right-radius: 4px;
+        align-self: flex-end;
+      }
+      .bubble.them {
+        background: white;
+        color: var(--text);
+        border-bottom-left-radius: 4px;
+        align-self: flex-start;
+      }
+      .bubble.image {
+        padding: 4px;
+        background: white !important;
+      }
+      .bubble.image img {
+        border-radius: 12px;
+        width: 100%;
+        max-width: 240px;
+        display: block;
+      }
+      .bubble.sticker {
+        background: transparent !important;
+        box-shadow: none;
+        font-size: 50px;
+        padding: 0;
+      }
+      .bubble.location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        background: white !important;
+        color: #0284c7 !important;
+        padding: 12px;
+      }
+      .attach-menu {
+        position: absolute;
+        bottom: 70px;
+        left: 10px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        padding: 10px;
+        display: flex;
+        gap: 12px;
+        transform: scale(0);
+        transform-origin: bottom left;
+        transition: 0.2s;
+        z-index: 50;
+      }
+      .attach-menu.visible {
+        transform: scale(1);
+      }
+      .attach-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+      }
+      .attach-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      .sticker-sheet {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 20px 20px 0 0;
+        padding: 16px;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: 0.3s;
+        height: 300px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+      }
+      .sticker-sheet.visible {
+        transform: translateY(0);
+      }
+      .sticker-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .sticker-item {
+        font-size: 36px;
+        text-align: center;
+        padding: 8px;
+        cursor: pointer;
+      }
+
+      /* IMAGE UPLOAD STYLES */
+      .image-upload-box {
+        width: 100%;
+        height: 150px;
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        transition: 0.2s;
+      }
+      .image-upload-box:hover {
+        border-color: var(--primary);
+        background: #fff7ed;
+      }
+      .image-upload-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .menu-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-right: 12px;
+        background: #eee;
+      }
+      .shop-logo-upload {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #eee;
+        border: 2px dashed #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        margin: 0 auto 10px;
+      }
+      .shop-logo-upload img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .payment-card {
+        padding: 16px;
+        border-radius: 16px;
+        background: white;
+        border: 1px solid var(--border);
+        margin-top: 16px;
+      }
+      .payment-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+      .payment-row:last-child {
+        border-bottom: none;
+      }
+      .qris-preview {
+        width: 100%;
+        height: 150px;
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .qris-preview:hover {
+        border-color: var(--primary);
+      }
+      .qris-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .qris-preview.has-image {
+        border: 2px solid var(--primary);
+        background: white;
+      }
+
+      /* Modals */
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+      }
+      .modal-sheet {
+        position: relative;
+        width: min(600px, 100%);
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        padding: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideUp 0.3s;
+        z-index: 2001;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+      .icon-btn-close {
+        border: none;
+        background: transparent;
+        font-size: 20px;
+        cursor: pointer;
+      }
+      .btn {
+        border: none;
+        cursor: pointer;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 700;
+        transition: 0.2s;
+        font-size: 14px;
+      }
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(255, 122, 0, 0.2);
+      }
+      .btn.small {
+        padding: 8px 14px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+      .btn.full {
+        width: 100%;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      .alert-card {
+        padding: 12px 16px;
+        border-radius: 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      .alert-card.warn {
+        background: #fff7ed;
+        border: 1px solid #ffedd5;
+        color: #9a3412;
+      }
+      .alert-card.info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+      }
+      .alert-card.success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+      }
+      .alert-icon {
+        font-size: 18px;
+      }
+
+      @media (min-width: 768px) {
+        .auth-visual {
+          display: flex;
+        }
+        .sidebar {
+          display: flex;
+        }
+        .mobile-only {
+          display: none !important;
+        }
+        .content {
+          padding: 24px;
+        }
+        .modal {
+          align-items: center;
+        }
+        .modal-sheet {
+          border-radius: 24px;
+          max-width: 500px;
+        }
+        .chat-layout {
+          height: calc(100vh - 120px);
+          border: 1px solid var(--border);
+        }
+        .chat-sidebar {
+          width: 320px;
+          border-right: 1px solid var(--border);
+        }
+        .chat-room {
+          position: relative;
+          width: auto;
+          flex: 1;
+          transform: none !important;
+          z-index: 0;
+        }
+        .btn-back {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="auth" class="auth-page">
+      <div class="auth-split">
+        <div class="auth-visual">
+          <div class="visual-content">
+            <h1>Jualan Lebih Laris dengan PIKUL</h1>
+            <p>
+              Gabung dengan ribuan mitra lainnya. Kelola pesanan, menu, dan
+              pelanggan dalam satu aplikasi.
+            </p>
+          </div>
+        </div>
+
+        <div class="auth-form-side">
+          <a href="../index.html" class="back-link">← Buka Aplikasi Customer</a>
+
+          <div class="auth-card">
+            <div class="brand-header">
+              <img src="../Mitra-Pikul.png" class="brand-logo" />
+              <span class="brand-text">Mitra PIKUL</span>
+            </div>
+
+            <form id="loginForm">
+              <h2 class="auth-title">Selamat Datang 👋</h2>
+              <p class="auth-subtitle">Masuk untuk mengelola toko Anda.</p>
+
+              <div class="form-group">
+                <label class="form-label">Email Toko</label>
+                <input
+                  id="email"
+                  type="email"
+                  class="form-input"
+                  placeholder="contoh: bakso@pikul.id"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  class="form-input"
+                  placeholder="••••••"
+                  required
+                />
+              </div>
+
+              <button class="btn-auth" type="submit">Masuk Dashboard</button>
+              <div class="auth-switch">
+                Belum jadi mitra?
+                <span class="auth-link" onclick="switchAuthMode('register')"
+                  >Daftar Sekarang</span
+                >
+              </div>
+            </form>
+
+            <form id="registerForm" class="hidden">
+              <h2 class="auth-title">Daftar Mitra 🚀</h2>
+              <p class="auth-subtitle">
+                Mulai usaha kuliner digitalmu sekarang.
+              </p>
+
+              <div class="form-group">
+                <label class="form-label">Nama Usaha</label>
+                <input
+                  id="regName"
+                  class="form-input"
+                  placeholder="Contoh: Bakso Pak Kumis"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <select id="regType" class="form-select">
+                  <option value="bakso">Bakso / Mie Ayam</option>
+                  <option value="kopi">Kopi / Minuman</option>
+                  <option value="nasi">Nasi / Lauk</option>
+                  <option value="cemilan">Cemilan</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input
+                  id="regEmail"
+                  type="email"
+                  class="form-input"
+                  placeholder="Email aktif"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input
+                  id="regPass"
+                  type="password"
+                  class="form-input"
+                  placeholder="Buat password"
+                  required
+                />
+              </div>
+
+              <button class="btn-auth" type="submit">Daftar Sekarang</button>
+              <div class="auth-switch">
+                Sudah punya akun?
+                <span class="auth-link" onclick="switchAuthMode('login')"
+                  >Masuk disini</span
+                >
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="app" class="app-layout hidden">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo-box small">M</div>
+          <h3>Mitra PIKUL</h3>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="sb-item active" onclick="goSeller('Home')">
+            <span class="icon">🏠</span> Dashboard
+          </button>
+          <button class="sb-item" onclick="goSeller('Orders')">
+            <span class="icon">📦</span> Pesanan
+          </button>
+          <button class="sb-item" onclick="goSeller('Chat')">
+            <span class="icon">💬</span> Chat Pelanggan
+          </button>
+        </nav>
+        <button onclick="logout()" class="sb-logout">⎋ Keluar</button>
+      </aside>
+      <div class="main-wrapper">
+        <header class="topbar">
+          <div class="profile-info">
+            <div class="avatar">🏪</div>
+            <div>
+              <div class="greeting">Selamat Datang,</div>
+              <b id="vName" class="shop-name">Nama Toko</b>
+            </div>
+          </div>
+          <button onclick="logout()" class="icon-btn-outline mobile-only">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </header>
+
+        <main class="content">
+          <section id="sellerHome">
+            <div class="dashboard-card" style="text-align: center">
+              <div class="shop-logo-upload" onclick="triggerLogoUpload()">
+                <img id="shopLogoPreview" class="hidden" src="" />
+                <span
+                  id="shopLogoPlaceholder"
+                  style="font-size: 24px; color: #999"
+                  >📷</span
+                >
+              </div>
+              <input
+                type="file"
+                id="shopLogoInput"
+                class="hidden"
+                accept="image/*"
+                onchange="handleLogoUpload(this)"
+              />
+              <h2 id="vNameDisplay" style="margin: 0; font-size: 20px">
+                Nama Toko
+              </h2>
+              <p class="muted" style="margin: 5px 0 20px; font-size: 12px">
+                Klik ikon kamera untuk ganti logo
+              </p>
+              <hr
+                style="border: none; border-top: 1px solid #eee; margin: 16px 0"
+              />
+              <div class="dash-header" style="justify-content: center">
+                <h3>📈 Ringkasan Penjualan</h3>
+              </div>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <span class="stat-label">Hari Ini</span
+                  ><span class="stat-value" id="statToday">Rp 0</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Minggu Ini</span
+                  ><span class="stat-value" id="statWeek">Rp 0</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Bulan Ini</span
+                  ><span class="stat-value" id="statMonth">Rp 0</span>
+                </div>
+                <div class="stat-box highlight">
+                  <span class="stat-label">Total Omzet</span
+                  ><span class="stat-value main" id="statTotal">Rp 0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid-layout">
+              <div class="dash-col">
+                <div class="section-card">
+                  <div class="card-header-row">
+                    <div>
+                      <h3>Status Toko</h3>
+                      <div id="statusText" class="status-indicator offline">
+                        Toko Tutup
+                      </div>
+                    </div>
+                    <label class="switch-toggle"
+                      ><input id="statusToggle" type="checkbox" disabled /><span
+                        class="slider"
+                      ></span
+                    ></label>
+                  </div>
+                  <div id="locationControls" class="loc-controls hidden">
+                    <div class="mode-tabs">
+                      <button
+                        class="mode-tab active"
+                        onclick="setLocMode('gps')"
+                      >
+                        📡 Live GPS</button
+                      ><button class="mode-tab" onclick="setLocMode('manual')">
+                        📍 Peta Manual
+                      </button>
+                    </div>
+                    <div class="map-wrapper">
+                      <div id="sellerMap"></div>
+                      <div id="manualHint" class="map-hint hidden">
+                        Geser pin merah untuk update lokasi
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="section-card payment-card">
+                  <div class="section-header">
+                    <h3>💳 Metode Pembayaran</h3>
+                  </div>
+                  <div class="payment-row">
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        cursor: pointer;
+                      "
+                    >
+                      <input
+                        type="checkbox"
+                        id="chkCash"
+                        onchange="updatePaymentMethod()"
+                      />
+                      <span>💵 Tunai</span>
+                    </label>
+                  </div>
+                  <div
+                    class="payment-row"
+                    style="flex-direction: column; align-items: flex-start"
+                  >
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        width: 100%;
+                        align-items: center;
+                      "
+                    >
+                      <label
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 10px;
+                          cursor: pointer;
+                        "
+                      >
+                        <input
+                          type="checkbox"
+                          id="chkQris"
+                          onchange="updatePaymentMethod()"
+                        />
+                        <span>📱 QRIS</span>
+                      </label>
+                      <small class="muted" id="qrisStatus">Belum Aktif</small>
+                    </div>
+                    <div id="qrisConfig" class="hidden" style="width: 100%">
+                      <div class="qris-preview" onclick="triggerQrisUpload()">
+                        <img
+                          id="qrisImg"
+                          src=""
+                          alt="Upload QRIS"
+                          class="hidden"
+                        />
+                        <div
+                          id="qrisPlaceholder"
+                          style="text-align: center; color: var(--text-muted)"
+                        >
+                          <div style="font-size: 24px">📷</div>
+                          <small>Klik untuk upload QRIS</small>
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        id="qrisInput"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="handleQrisUpload(this)"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  id="subAlert"
+                  class="alert-card warn hidden"
+                  style="margin-top: 16px"
+                >
+                  <div class="alert-icon">⚠️</div>
+                  <div class="alert-content">
+                    <b>Masa Aktif Habis</b>
+                    <p>Bayar Rp 5.000 untuk lanjut jualan.</p>
+                  </div>
+                  <button id="payBtn" class="btn small dark">Bayar</button>
+                </div>
+                <div
+                  id="subPending"
+                  class="alert-card info hidden"
+                  style="
+                    margin-top: 16px;
+                    background: #eff6ff;
+                    border-color: #bfdbfe;
+                  "
+                >
+                  <div class="alert-icon">⏳</div>
+                  <div class="alert-content">
+                    <b>Menunggu Verifikasi</b>
+                    <p>Pembayaran Anda sedang dicek Admin.</p>
+                  </div>
+                </div>
+
+                <div
+                  id="subActivation"
+                  class="alert-card info hidden"
+                  style="
+                    margin-top: 16px;
+                    background: #f0fdf4;
+                    border-color: #22c55e;
+                  "
+                >
+                  <div style="text-align: center; width: 100%">
+                    <div style="font-size: 24px; margin-bottom: 5px">🔐</div>
+                    <b style="color: #166534">Aktivasi Akun</b>
+                    <p style="font-size: 12px; margin: 5px 0">
+                      Masukkan kode 4 digit dari Admin:
+                    </p>
+                    <div
+                      style="
+                        display: flex;
+                        gap: 8px;
+                        justify-content: center;
+                        margin-top: 10px;
+                      "
+                    >
+                      <input
+                        id="activationCode"
+                        type="number"
+                        placeholder="0000"
+                        style="
+                          width: 100px;
+                          text-align: center;
+                          padding: 10px;
+                          font-weight: 800;
+                          border-radius: 8px;
+                          border: 1px solid #ccc;
+                        "
+                      />
+                      <button
+                        onclick="redeemCode()"
+                        class="btn primary"
+                        style="background: #166534"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  id="subActive"
+                  class="alert-card success hidden"
+                  style="margin-top: 16px"
+                >
+                  <div class="alert-icon">✅</div>
+                  <div class="alert-content">
+                    <b>Akun Premium Aktif</b>
+                    <p>Berlaku sampai <span id="expDate">-</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="dash-col full-height">
+                <div class="section-header">
+                  <h3>Daftar Menu</h3>
+                  <button id="addMenuBtn" class="btn primary small">
+                    + Menu Baru
+                  </button>
+                </div>
+                <div id="menuList" class="menu-grid"></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="sellerOrders" class="hidden">
+            <div class="desktop-row">
+              <div class="col-half">
+                <div class="section-header">
+                  <h3>Pesanan Masuk</h3>
+                  <span class="badge-count" id="incomingCount">0</span>
+                </div>
+                <div
+                  id="incomingOrdersList"
+                  class="order-list empty-state-box"
+                ></div>
+              </div>
+              <div class="col-half">
+                <div class="section-header">
+                  <h3 class="text-muted">Riwayat Pesanan</h3>
+                </div>
+                <div id="historyOrdersList" class="order-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="sellerChat" class="hidden" style="height: 100%">
+            <div class="chat-layout">
+              <div class="chat-sidebar">
+                <div
+                  style="padding: 16px; border-bottom: 1px solid var(--border)"
+                >
+                  <h3 style="margin: 0; font-size: 18px">Pesan</h3>
+                </div>
+                <div id="chatList" class="chat-list"></div>
+              </div>
+              <div id="chatRoom" class="chat-room">
+                <div class="chat-room-header">
+                  <button onclick="closeChat()" class="btn-circle btn-back">
+                    ←
+                  </button>
+                  <div
+                    style="
+                      width: 36px;
+                      height: 36px;
+                      background: #e2e8f0;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      border-radius: 50%;
+                      font-size: 18px;
+                    "
+                  >
+                    👤
+                  </div>
+                  <div>
+                    <b
+                      id="chattingWith"
+                      style="display: block; font-size: 15px; line-height: 1.2"
+                      >-</b
+                    ><span class="muted" style="font-size: 12px"
+                      >Pelanggan</span
+                    >
+                  </div>
+                </div>
+                <div id="msgBox" class="chat-messages"></div>
+                <div class="chat-input-bar">
+                  <div id="attachMenu" class="attach-menu">
+                    <div class="attach-item" onclick="triggerImage()">
+                      <div class="attach-icon" style="background: #3b82f6">
+                        📷
+                      </div>
+                      <span style="font-size: 10px">Foto</span>
+                    </div>
+                    <div class="attach-item" onclick="sendLocation()">
+                      <div class="attach-icon" style="background: #10b981">
+                        📍
+                      </div>
+                      <span style="font-size: 10px">Lokasi</span>
+                    </div>
+                    <div class="attach-item" onclick="toggleSticker()">
+                      <div class="attach-icon" style="background: #f59e0b">
+                        😊
+                      </div>
+                      <span style="font-size: 10px">Stiker</span>
+                    </div>
+                  </div>
+                  <button
+                    class="btn-circle btn-attach"
+                    onclick="toggleAttachMenu()"
+                  >
+                    +
+                  </button>
+                  <input
+                    id="replyInput"
+                    class="reply-input"
+                    placeholder="Ketik pesan..."
+                    autocomplete="off"
+                  />
+                  <button id="sendReplyBtn" class="btn-circle btn-send">
+                    ➤
+                  </button>
+                </div>
+                <div id="stickerSheet" class="sticker-sheet">
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <b>Pilih Stiker</b
+                    ><button
+                      onclick="toggleSticker()"
+                      style="background: none; border: none; font-size: 20px"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px">
+                    <button class="btn small" onclick="renderStickers('emoji')">
+                      Emoji</button
+                    ><button
+                      class="btn small primary"
+                      onclick="renderStickers('sticker')"
+                    >
+                      Stiker
+                    </button>
+                  </div>
+                  <div id="stickerGrid" class="sticker-grid"></div>
+                </div>
+                <input
+                  type="file"
+                  id="imageInput"
+                  accept="image/*"
+                  style="display: none"
+                  onchange="handleImageUpload(this)"
+                />
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <nav class="bottom-nav mobile-only">
+        <button class="nav-item active" onclick="goSeller('Home')">
+          <div class="nav-icon">🏠</div>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="goSeller('Orders')">
+          <div class="nav-icon">📦</div>
+          <span>Pesanan</span>
+        </button>
+        <button class="nav-item" onclick="goSeller('Chat')">
+          <div class="nav-icon">💬</div>
+          <span>Chat</span>
+        </button>
+      </nav>
+    </div>
+
+    <div id="menuModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closeModal()"></div>
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h3 id="menuModalTitle">Tambah Menu</h3>
+          <button class="icon-btn-close" onclick="closeModal()">✕</button>
+        </div>
+        <form id="menuForm">
+          <div class="input-group">
+            <label>Foto Makanan</label>
+            <div
+              class="image-upload-box"
+              id="menuImageBox"
+              onclick="triggerMenuImageUpload()"
+            >
+              <img id="mImagePreview" class="hidden" src="" />
+              <div
+                id="mImagePlaceholder"
+                style="text-align: center; color: #94a3b8"
+              >
+                <div style="font-size: 24px">🍲</div>
+                <small>Klik untuk upload</small>
+              </div>
+            </div>
+            <input
+              type="file"
+              id="mImageInput"
+              accept="image/*"
+              class="hidden"
+              onchange="handleMenuImageUpload(this)"
+            />
+          </div>
+          <div class="input-group">
+            <label>Nama Makanan</label
+            ><input
+              id="mName"
+              placeholder="Contoh: Nasi Goreng Spesial"
+              required
+            />
+          </div>
+          <div class="input-group">
+            <label>Harga (Rp)</label
+            ><input id="mPrice" type="number" placeholder="15000" required />
+          </div>
+          <button class="btn primary full" style="margin-top: 20px">
+            Simpan Menu
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="payModal" class="modal hidden">
+      <div class="modal-overlay" onclick="closePayModal()"></div>
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h3>Perpanjang Masa Aktif</h3>
+          <button class="icon-btn-close" onclick="closePayModal()">✕</button>
+        </div>
+        <div
+          class="card"
+          style="
+            margin-bottom: 16px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+          "
+        >
+          <div style="font-size: 14px; font-weight: bold; color: #0284c7">
+            Paket Premium 30 Hari
+          </div>
+          <div style="font-size: 18px; font-weight: 800; color: #0369a1">
+            Rp 5.000
+          </div>
+        </div>
+
+        <label style="font-weight: 600; font-size: 14px"
+          >Metode Pembayaran</label
+        >
+        <div style="display: flex; gap: 10px; margin-top: 10px">
+          <button
+            class="btn small"
+            style="
+              flex: 1;
+              border: 1px solid var(--primary);
+              color: var(--primary);
+              background: white;
+            "
+            onclick="selectPayMethod('cash')"
+          >
+            💵 Tunai
+          </button>
+          <button
+            class="btn small"
+            style="
+              flex: 1;
+              border: 1px solid var(--primary);
+              color: var(--primary);
+              background: white;
+            "
+            onclick="selectPayMethod('qris')"
+          >
+            📱 QRIS
+          </button>
+        </div>
+
+        <div
+          id="payCash"
+          class="hidden"
+          style="
+            margin-top: 15px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+          "
+        >
+          <p style="margin: 0; font-size: 13px">
+            Silakan bayar <b>Rp 5.000</b> ke Admin secara tunai. Admin akan
+            memberi kode aktivasi setelah pembayaran diterima.
+          </p>
+          <button
+            class="btn primary full"
+            style="margin-top: 15px"
+            onclick="submitSubscription('cash')"
+          >
+            Ajukan Pembayaran Tunai
+          </button>
+        </div>
+
+        <div
+          id="payQris"
+          class="hidden"
+          style="
+            margin-top: 15px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+          "
+        >
+          <div style="text-align: center">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
+              style="width: 150px; mix-blend-mode: multiply"
+            />
+            <p style="font-size: 12px; margin-top: 5px">Scan QRIS Admin</p>
+          </div>
+          <label
+            style="
+              margin-top: 10px;
+              display: block;
+              font-size: 12px;
+              font-weight: 600;
+            "
+            >Bukti Transfer</label
+          >
+          <div
+            class="image-upload-box"
+            style="height: 100px; background: white"
+            onclick="triggerPayProofUpload()"
+          >
+            <span id="payProofText" style="font-size: 12px; color: #94a3b8"
+              >Upload Bukti</span
+            >
+          </div>
+          <input
+            type="file"
+            id="payProofInput"
+            accept="image/*"
+            class="hidden"
+            onchange="handlePayProof(this)"
+          />
+          <button
+            class="btn primary full"
+            style="margin-top: 15px"
+            onclick="submitSubscription('qris')"
+          >
+            Kirim Bukti & Ajukan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="seller.js"></script>
+  </body>
+</html>
