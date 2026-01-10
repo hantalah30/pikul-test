@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, interactive-widget=resizes-content, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
     />
     <title>PIKUL - Jajan Aman</title>
     <link rel="icon" type="image/jpeg" href="pikul.jpeg" />
@@ -31,29 +31,17 @@
         --text: #1e293b;
         --text-muted: #64748b;
         --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-
-        /* Chat Colors */
-        --chat-bg: #efe7dd;
-        --bubble-me: #dcf8c6; /* WhatsApp Greenish */
-        --bubble-them: #ffffff;
       }
-
-      * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-      }
-
       body {
         margin: 0;
         font-family: "Plus Jakarta Sans", sans-serif;
         background: var(--bg);
         height: 100vh;
-        height: 100dvh; /* Dynamic Height for Mobile */
         overflow: hidden;
         color: var(--text);
       }
 
-      /* --- AUTH PAGE --- */
+      /* --- AUTH STYLES --- */
       .auth-page {
         width: 100%;
         height: 100vh;
@@ -222,19 +210,17 @@
       /* --- APP LAYOUT --- */
       .app {
         height: 100vh;
-        height: 100dvh;
         overflow: hidden;
         display: flex;
         flex-direction: column;
       }
-
       .bottomNav {
         position: fixed;
         z-index: 1000;
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s ease-in-out;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.5);
       }
@@ -242,7 +228,7 @@
         transform: translate(-50%, 150%) !important;
       }
 
-      /* --- MOBILE VIEW --- */
+      /* MOBILE NAV */
       @media (max-width: 767px) {
         .bottomNav {
           bottom: 20px;
@@ -256,8 +242,6 @@
           justify-content: space-around;
           align-items: center;
           padding: 0 10px;
-          /* iPhone Safe Area */
-          margin-bottom: env(safe-area-inset-bottom);
         }
         .nav {
           background: transparent;
@@ -309,7 +293,6 @@
         .auth-visual {
           display: none;
         }
-
         #mainHeader {
           position: fixed;
           top: 0;
@@ -321,40 +304,19 @@
           backdrop-filter: blur(10px);
           border-bottom: 1px solid var(--border);
           transition: transform 0.3s;
-          padding-top: env(safe-area-inset-top); /* iPhone Notch */
         }
-
         .content {
-          margin-top: calc(60px + env(safe-area-inset-top));
-          height: 100%;
+          margin-top: 60px;
+          height: calc(100vh - 60px);
           overflow-y: auto;
           padding: 20px;
           padding-bottom: 100px;
           box-sizing: border-box;
           -webkit-overflow-scrolling: touch;
         }
-
-        /* KHUSUS CHAT DI MOBILE: Full Screen Immersive */
-        .chat-container.mobile-mode {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 2000;
-          background: var(--chat-bg);
-          display: flex;
-          flex-direction: column;
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-        .chat-container.mobile-mode .chat-header {
-          padding-top: max(10px, env(safe-area-inset-top)); /* Handle Notch */
-          height: auto;
-          min-height: 60px;
-        }
       }
 
-      /* --- DESKTOP VIEW --- */
+      /* DESKTOP NAV */
       @media (min-width: 768px) {
         .auth-visual {
           display: flex;
@@ -441,7 +403,6 @@
           background: var(--primary);
           border-radius: 0 4px 4px 0;
         }
-
         #app {
           padding-left: 260px;
           box-sizing: border-box;
@@ -460,7 +421,6 @@
           opacity: 0;
           pointer-events: none;
         }
-
         .content {
           padding: 80px 40px 40px;
           max-width: 1280px;
@@ -474,15 +434,9 @@
           border-radius: 24px;
           border: 1px solid var(--border);
         }
-        .chat-container {
-          height: 100%;
-          border-radius: 20px;
-          overflow: hidden;
-          border: 1px solid var(--border);
-        }
       }
 
-      /* --- COMPONENTS --- */
+      /* MAP, UTILS */
       #map-container {
         position: relative;
         height: 60vh;
@@ -577,175 +531,23 @@
         cursor: pointer;
         border: 1px solid #eee;
       }
-
-      /* CHAT UI (Enhanced) */
-      .chat-container {
-        display: flex;
-        flex-direction: column;
-        background: var(--chat-bg);
+      .listItem.nearest {
+        background: #f0fdf4;
+        border: 1px solid #22c55e;
         position: relative;
-        width: 100%;
       }
-      .chat-bg-pattern {
+      .listItem.nearest::after {
+        content: "Terdekat";
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        opacity: 0.06;
-        background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      .chat-header {
-        background: #ffffff;
-        padding: 10px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-bottom: 1px solid #e2e8f0;
-        z-index: 10;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      }
-      .chat-back-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        color: var(--text);
-        cursor: pointer;
-        padding: 0 8px 0 0;
-        display: none;
-      }
-      @media (max-width: 767px) {
-        .chat-back-btn {
-          display: block;
-        }
-      }
-
-      #chatBox {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 1;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .chat-date-separator {
-        align-self: center;
-        background: rgba(255, 255, 255, 0.9);
-        color: #555;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 11px;
-        margin: 10px 0;
-        font-weight: 600;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      .bubble {
-        max-width: 80%;
-        padding: 8px 12px;
-        border-radius: 12px;
-        font-size: 15px;
-        line-height: 1.4;
-        position: relative;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-        word-wrap: break-word;
-      }
-      .bubble.me {
-        align-self: flex-end;
-        background: var(--bubble-me);
-        border-top-right-radius: 0;
-        margin-right: 4px;
-      }
-      .bubble.them {
-        align-self: flex-start;
-        background: var(--bubble-them);
-        border-top-left-radius: 0;
-        margin-left: 4px;
-      }
-
-      .bubble-meta {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 4px;
-        margin-top: 2px;
-        float: right;
-        margin-left: 8px;
-      }
-      .bubble-time {
-        font-size: 10px;
-        color: rgba(0, 0, 0, 0.45);
-      }
-      .bubble-status {
-        font-size: 14px;
-        color: #34b7f1;
-      } /* Blue tick */
-
-      /* Chat Input */
-      .chat-input-area {
-        background: #f0f2f5;
-        padding: 8px 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        z-index: 2;
-        border-top: 1px solid #e2e8f0;
-      }
-      #chatInput {
-        flex: 1;
-        border: none;
-        padding: 12px 16px;
-        border-radius: 24px;
-        font-size: 16px; /* 16px prevents iOS Zoom */
-        outline: none;
-        background: white;
-      }
-      .btn-attach,
-      #sendChatBtn {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.2s;
-        flex-shrink: 0;
-      }
-      .btn-attach {
-        background: transparent;
-        color: #54656f;
-        font-size: 24px;
-      }
-      #sendChatBtn {
-        background: #00a884;
+        top: -8px;
+        right: 10px;
+        background: #22c55e;
         color: white;
-        font-size: 20px;
-        padding-left: 4px;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: bold;
       }
-
-      .bubble.image img {
-        width: 100%;
-        max-width: 240px;
-        border-radius: 8px;
-      }
-      .bubble.sticker {
-        background: transparent !important;
-        box-shadow: none;
-        font-size: 60px;
-        padding: 0;
-        align-self: center;
-      }
-
-      /* Utilities */
       .vendorCard.closed {
         opacity: 0.7;
         background: #f9fafb;
@@ -1022,79 +824,141 @@
         }
       }
 
-      /* ATTACH MENU */
-      .attach-menu {
-        position: absolute;
-        bottom: 70px;
-        left: 10px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        padding: 10px;
+      /* --- DYNAMIC ISLAND CHAT STYLES (NEW) --- */
+      .dynamic-island {
+        position: fixed;
+        top: 70px; /* Below header */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 140px; /* Small pill width */
+        height: 40px; /* Small pill height */
+        background: #000000;
+        border-radius: 30px;
+        z-index: 9999;
         display: flex;
-        gap: 10px;
-        z-index: 100;
-        transform: scale(0);
-        transform-origin: bottom left;
-        transition: 0.2s;
-      }
-      .attach-menu.visible {
-        transform: scale(1);
-      }
-      .attach-item {
-        display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 4px;
-        padding: 8px;
+        justify-content: center;
         cursor: pointer;
-        border-radius: 8px;
-        min-width: 60px;
+        color: white;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
       }
-      .attach-item:active {
-        background: #f8fafc;
+
+      /* State: Minimised (Pill) */
+      .di-content-min {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 1;
+        transition: opacity 0.3s;
+        padding: 0 10px;
+        white-space: nowrap;
       }
-      .attach-icon {
-        width: 40px;
-        height: 40px;
+      .di-avatar-small {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+      }
+      .di-text-small {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      /* State: Expanded (Full Chat) */
+      .dynamic-island.expanded {
+        width: 95%;
+        max-width: 450px;
+        height: 80vh; /* Takes most of screen */
+        top: 20px; /* Moves up slightly */
+        border-radius: 24px;
+        background: #e5ddd5; /* WhatsApp BG */
+        flex-direction: column;
+        justify-content: flex-start;
+        cursor: default;
+      }
+
+      .dynamic-island.expanded .di-content-min {
+        opacity: 0;
+        pointer-events: none;
+        display: none;
+      }
+
+      /* Hidden Chat Container inside Island */
+      .di-chat-container {
+        display: none;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        opacity: 0;
+        transition: opacity 0.4s ease 0.2s; /* Delay fade in */
+        background: #e5ddd5;
+        position: relative;
+      }
+
+      .dynamic-island.expanded .di-chat-container {
+        display: flex;
+        opacity: 1;
+      }
+
+      /* Header inside Island */
+      .di-header {
+        height: 60px;
+        background: #000; /* Header hitam agar menyatu dengan pulau */
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        flex-shrink: 0;
+      }
+      .di-close-btn {
+        background: rgba(255, 255, 255, 0.2);
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        cursor: pointer;
+        font-size: 16px;
+        border: none;
         color: white;
       }
-      .sticker-sheet {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-radius: 20px 20px 0 0;
+
+      /* Messages area inside Island */
+      .di-messages {
+        flex: 1;
+        overflow-y: auto;
         padding: 16px;
-        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
-        z-index: 200;
-        transform: translateY(100%);
-        transition: 0.3s;
-        height: 300px;
         display: flex;
         flex-direction: column;
+        gap: 8px;
       }
-      .sticker-sheet.visible {
-        transform: translateY(0);
+      /* Reuse bubble styles but ensure contrast */
+      .di-messages .bubble {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
       }
-      .sticker-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+
+      /* Input area inside Island */
+      .di-input {
+        background: #f0f2f5;
+        padding: 10px;
+        display: flex;
         gap: 10px;
-        overflow-y: auto;
-        padding-top: 10px;
+        border-radius: 0 0 24px 24px;
       }
-      .sticker-item {
-        font-size: 40px;
-        text-align: center;
-        cursor: pointer;
-        transition: 0.2s;
+      .di-input input {
+        flex: 1;
+        padding: 10px 15px;
+        border-radius: 20px;
+        border: none;
+        outline: none;
       }
     </style>
   </head>
@@ -1122,11 +986,91 @@
       </div>
     </div>
 
+    <div
+      id="dynamicIsland"
+      class="dynamic-island hidden"
+      onclick="expandIsland()"
+    >
+      <div class="di-content-min">
+        <div class="di-avatar-small">💬</div>
+        <span class="di-text-small">Chat Aktif</span>
+      </div>
+
+      <div class="di-chat-container" onclick="event.stopPropagation()">
+        <div class="di-header">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div
+              style="
+                width: 32px;
+                height: 32px;
+                background: #333;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              👤
+            </div>
+            <div>
+              <b id="diChatName" style="font-size: 14px; display: block"
+                >Nama Toko</b
+              >
+              <span style="font-size: 10px; color: #ccc">Online</span>
+            </div>
+          </div>
+          <button class="di-close-btn" onclick="collapseIsland(event)">
+            ✕
+          </button>
+        </div>
+
+        <div id="diChatBox" class="di-messages"></div>
+
+        <div class="di-input">
+          <button class="btn-attach" onclick="toggleAttachMenu()">+</button>
+          <input id="diChatInput" placeholder="Tulis pesan..." />
+          <button
+            id="diSendBtn"
+            class="btn-attach"
+            style="background: var(--primary); color: white; border-radius: 50%"
+          >
+            ➤
+          </button>
+        </div>
+
+        <div id="attachMenu" class="attach-menu">
+          <div class="attach-item" onclick="triggerImage()">
+            <div class="attach-icon" style="background: #3b82f6">📷</div>
+          </div>
+          <div class="attach-item" onclick="sendLocation()">
+            <div class="attach-icon" style="background: #10b981">📍</div>
+          </div>
+          <div class="attach-item" onclick="toggleSticker()">
+            <div class="attach-icon" style="background: #f59e0b">😊</div>
+          </div>
+        </div>
+        <div id="stickerSheet" class="sticker-sheet">
+          <div class="rowBetween" style="margin-bottom: 10px">
+            <b>Stiker</b
+            ><button class="iconBtn" onclick="toggleSticker()">✕</button>
+          </div>
+          <div id="stickerGrid" class="sticker-grid"></div>
+        </div>
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          style="display: none"
+          onchange="handleImageUpload(this)"
+        />
+      </div>
+    </div>
+
     <main id="auth" class="auth-page hidden">
       <div class="auth-visual">
         <div class="visual-content">
           <h1>Jajan Enak,<br />Gak Pake Ribet.</h1>
-          <p>Temukan kuliner kaki lima terbaik di sekitarmu.</p>
+          <p>Temukan kuliner kaki lima terbaik di sekitarmu dengan mudah.</p>
         </div>
       </div>
       <div class="auth-form-container">
@@ -1144,7 +1088,6 @@
                 id="loginEmail"
                 type="email"
                 class="input-field"
-                placeholder="nama@email.com"
                 required
               />
             </div>
@@ -1154,15 +1097,14 @@
                 id="loginPass"
                 type="password"
                 class="input-field"
-                placeholder="••••••"
                 required
               />
             </div>
             <button class="btn-auth" type="submit">Masuk</button>
             <div class="switch-text">
-              Baru?
+              Pengguna baru?
               <span class="switch-link" onclick="switchAuthMode('register')"
-                >Daftar</span
+                >Daftar Akun</span
               >
             </div>
           </form>
@@ -1170,14 +1112,14 @@
             <h2 class="auth-title">Daftar Akun 🚀</h2>
             <div class="input-group">
               <label class="input-label">Nama</label
-              ><input id="regName" type="text" class="input-field" required />
+              ><input id="regName" class="input-field" required />
             </div>
             <div class="input-group">
               <label class="input-label">Email</label
               ><input id="regEmail" type="email" class="input-field" required />
             </div>
             <div class="input-group">
-              <label class="input-label">WhatsApp</label
+              <label class="input-label">WA</label
               ><input id="regPhone" type="tel" class="input-field" required />
             </div>
             <div class="input-group">
@@ -1191,9 +1133,8 @@
             </div>
             <button class="btn-auth" type="submit">Daftar</button>
             <div class="switch-text">
-              Sudah punya akun?
               <span class="switch-link" onclick="switchAuthMode('login')"
-                >Masuk</span
+                >Masuk disini</span
               >
             </div>
           </form>
@@ -1326,87 +1267,11 @@
           ></div>
         </section>
         <section id="screenMessages" class="hidden">
-          <div class="chat-container">
-            <div class="chat-bg-pattern"></div>
-            <div class="chat-header">
-              <button class="chat-back-btn" onclick="closeChatMobile()">
-                ←
-              </button>
-              <div style="display: flex; align-items: center; gap: 10px">
-                <div
-                  style="
-                    width: 36px;
-                    height: 36px;
-                    background: #eee;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 18px;
-                  "
-                >
-                  👤
-                </div>
-                <div>
-                  <b id="chatWith" style="display: block; font-size: 14px"
-                    >Pilih Pedagang</b
-                  ><span class="muted" style="font-size: 11px; display: block"
-                    >Status: Online</span
-                  >
-                </div>
-              </div>
-            </div>
-            <div id="chatBox"></div>
-            <div id="attachMenu" class="attach-menu">
-              <div class="attach-item" onclick="triggerImage()">
-                <div class="attach-icon" style="background: #3b82f6">📷</div>
-                <span style="font-size: 10px">Foto</span>
-              </div>
-              <div class="attach-item" onclick="sendLocation()">
-                <div class="attach-icon" style="background: #10b981">📍</div>
-                <span style="font-size: 10px">Lokasi</span>
-              </div>
-              <div class="attach-item" onclick="toggleSticker()">
-                <div class="attach-icon" style="background: #f59e0b">😊</div>
-                <span style="font-size: 10px">Stiker</span>
-              </div>
-            </div>
-            <div class="chat-input-area">
-              <button class="btn-attach" onclick="toggleAttachMenu()">+</button
-              ><input
-                id="chatInput"
-                placeholder="Tulis pesan..."
-                autocomplete="off"
-              /><button id="sendChatBtn">➤</button>
-            </div>
-            <div id="stickerSheet" class="sticker-sheet">
-              <div class="rowBetween" style="margin-bottom: 10px">
-                <b>Pilih Stiker</b
-                ><button class="iconBtn" onclick="toggleSticker()">✕</button>
-              </div>
-              <div class="segment-control" style="margin-bottom: 10px">
-                <button
-                  class="segment-btn active"
-                  onclick="renderStickers('emoji')"
-                >
-                  Emoji</button
-                ><button
-                  class="segment-btn"
-                  onclick="renderStickers('sticker')"
-                >
-                  Stiker
-                </button>
-              </div>
-              <div id="stickerGrid" class="sticker-grid"></div>
-            </div>
-            <input
-              type="file"
-              id="imageInput"
-              accept="image/*"
-              style="display: none"
-              onchange="handleImageUpload(this)"
-            />
-          </div>
+          <h2 style="margin: 0 0 16px">Pesan</h2>
+          <div
+            id="inboxList"
+            style="display: flex; flex-direction: column; gap: 10px"
+          ></div>
         </section>
         <section id="screenProfile" class="hidden">
           <h2 style="margin: 0 0 16px">Akun Saya</h2>
@@ -1563,14 +1428,14 @@
         </button>
       </div>
     </div>
-    <div id="pickChatModal" class="modal hidden">
-      <div class="overlay" data-close="pickChatModal"></div>
-      <div class="sheet">
-        <h3>Pilih Kontak</h3>
-        <div id="pickChatList"></div>
-      </div>
-    </div>
 
     <script type="module" src="app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("./sw.js").catch(console.log);
+        });
+      }
+    </script>
   </body>
 </html>

@@ -258,7 +258,175 @@ async function bootApp() {
   updateFab();
 }
 
-// --- HOME ---
+// --- DYNAMIC ISLAND CHAT LOGIC ---
+window.expandIsland = () => {
+  if (!state.chatWithVendorId) return; // Don't expand if no chat selected
+  $("#dynamicIsland").classList.add("expanded");
+};
+
+window.collapseIsland = (e) => {
+  e.stopPropagation(); // Prevent trigger expand
+  $("#dynamicIsland").classList.remove("expanded");
+};
+
+// When selecting a chat from ANYWHERE (Vendor Modal, Map, or Inbox)
+window.selectChat = (vid) => {
+  if (!state.user) return requireLogin();
+
+  state.chatWithVendorId = vid;
+  const v = state.vendors.find((x) => x.id === vid);
+
+  // Update Island UI
+  $("#diChatName").textContent = v ? v.name : "Unknown";
+  $("#dynamicIsland").classList.remove("hidden"); // Show pill
+
+  // Render Messages inside Island
+  renderChatInsideIsland();
+
+  // Auto expand
+  setTimeout(() => {
+    $("#dynamicIsland").classList.add("expanded");
+  }, 100);
+
+  // Close other modals if open
+  closeModal("vendorModal");
+};
+
+async function renderChatInsideIsland() {
+  const vid = state.chatWithVendorId;
+  const v = state.vendors.find((x) => x.id === vid);
+  $("#diChatBox").innerHTML = ""; // Clear previous
+
+  if (state.unsubChats) state.unsubChats();
+  const q = query(
+    collection(db, "chats", `${state.user.id}_${vid}`, "messages"),
+    orderBy("ts", "asc")
+  );
+
+  state.unsubChats = onSnapshot(q, (s) => {
+    let lastDate = "";
+    $("#diChatBox").innerHTML = s.docs
+      .map((d) => {
+        const m = d.data();
+        const dateObj = new Date(m.ts);
+        const dateStr = dateObj.toLocaleDateString();
+        let dateHeader = "";
+        if (dateStr !== lastDate) {
+          const displayDate =
+            dateStr === new Date().toLocaleDateString() ? "HARI INI" : dateStr;
+          dateHeader = `<div class="chat-date-separator">${displayDate}</div>`;
+          lastDate = dateStr;
+        }
+        const isMe = m.from === state.user.id;
+        const timeStr = dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        let contentHtml = "";
+        if (m.type === "image")
+          contentHtml = `<div class="bubble image ${
+            isMe ? "me" : "them"
+          }"><img src="${m.text}" loading="lazy" /></div>`;
+        else if (m.type === "location")
+          contentHtml = `<a href="${
+            m.text
+          }" target="_blank" class="bubble location ${
+            isMe ? "me" : "them"
+          }"><span>📍</span> <span>Lokasi</span></a>`;
+        else if (m.type === "sticker")
+          contentHtml = `<div class="bubble sticker ${isMe ? "me" : "them"}">${
+            m.text
+          }</div>`;
+        else
+          contentHtml = `<div class="bubble ${
+            isMe ? "me" : "them"
+          }"><div class="bubble-content">${
+            m.text
+          }</div><div class="bubble-meta"><span class="bubble-time">${timeStr}</span></div></div>`;
+        return `${dateHeader}<div style="display:flex; justify-content:${
+          isMe ? "flex-end" : "flex-start"
+        }; margin-bottom:4px;">${contentHtml}</div>`;
+      })
+      .join("");
+    $("#diChatBox").scrollTop = $("#diChatBox").scrollHeight;
+  });
+}
+
+// Send Message from Island
+$("#diSendBtn").addEventListener("click", () => {
+  const t = $("#diChatInput").value.trim();
+  if (t) {
+    sendMessage(t, "text");
+    $("#diChatInput").value = "";
+  }
+});
+
+// Re-route generic sendMessage to use current chat ID
+async function sendMessage(content, type = "text") {
+  if (!state.user) return requireLogin();
+  if (!content || !state.chatWithVendorId) return;
+  const cid = `${state.user.id}_${state.chatWithVendorId}`;
+  const vid = state.chatWithVendorId;
+  await addDoc(collection(db, "chats", cid, "messages"), {
+    text: content,
+    type: type,
+    from: state.user.id,
+    ts: Date.now(),
+  });
+  let preview =
+    type === "text"
+      ? content
+      : type === "image"
+      ? "📷 Foto"
+      : type === "location"
+      ? "📍 Lokasi"
+      : "😊 Stiker";
+  const v = state.vendors.find((x) => x.id === vid);
+  await setDoc(
+    doc(db, "chats", cid),
+    {
+      userId: state.user.id,
+      userName: state.user.name,
+      vendorId: vid,
+      vendorName: v ? v.name : "Unknown",
+      lastMessage: preview,
+      lastUpdate: Date.now(),
+    },
+    { merge: true }
+  );
+}
+
+// --- INBOX LIST (Screen Messages) ---
+function renderInbox() {
+  if (!state.user) {
+    $(
+      "#inboxList"
+    ).innerHTML = `<div class="empty-state-box">Login untuk melihat pesan.</div>`;
+    return;
+  }
+
+  // We simulate inbox by listing all vendors (for now) or fetch 'chats' collection where userId == me
+  // For simplicity with current DB structure, let's list active chats from vendors
+  // Or just list all vendors to start chatting
+
+  const list = state.vendors
+    .map((v) => {
+      return `<div class="listItem" onclick="selectChat('${v.id}')" style="cursor:pointer; display:flex; align-items:center; gap:12px;">
+            <div style="width:45px; height:45px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px;">${v.ico}</div>
+            <div style="flex:1;">
+                <b style="font-size:15px;">${v.name}</b>
+                <div class="muted" style="font-size:13px;">Klik untuk chat</div>
+            </div>
+            <button class="btn small ghost">Chat</button>
+        </div>`;
+    })
+    .join("");
+
+  $("#inboxList").innerHTML =
+    list || `<div class="empty-state-box">Belum ada pedagang.</div>`;
+}
+
+// --- STANDARD APP FUNCTIONS (Home, Map, etc) ---
 let bannerInterval;
 function renderHome() {
   let promoData =
@@ -346,7 +514,7 @@ function renderVendors() {
 }
 $("#search").addEventListener("input", renderVendors);
 
-// --- MAP ENGINE ---
+// --- MAP ---
 function initMap() {
   if (state.map) return;
   if (!$("#map")) return;
@@ -564,284 +732,7 @@ window.trackOrder = (vid) => {
   window.go("Map");
 };
 
-// --- CHAT SYSTEM (UPDATED FOR MOBILE IMMERSIVE) ---
-window.toggleAttachMenu = () => {
-  $("#attachMenu").classList.toggle("visible");
-};
-window.toggleSticker = () => {
-  $("#attachMenu").classList.remove("visible");
-  $("#stickerSheet").classList.toggle("visible");
-  renderStickers("emoji");
-};
-window.triggerImage = () => {
-  $("#attachMenu").classList.remove("visible");
-  $("#imageInput").click();
-};
-window.handleImageUpload = async (input) => {
-  if (input.files && input.files[0]) {
-    try {
-      const compressed = await compressImage(input.files[0], 500, 0.7);
-      await sendMessage(compressed, "image");
-      showToast("Foto terkirim!");
-    } catch (e) {
-      alert("Gagal kirim: " + e.message);
-    }
-    input.value = "";
-  }
-};
-window.sendLocation = async () => {
-  $("#attachMenu").classList.remove("visible");
-  if (!state.you.ok) return showToast("GPS belum aktif");
-  const mapsUrl = `https://www.google.com/maps?q=${state.you.lat},${state.you.lon}`;
-  await sendMessage(mapsUrl, "location");
-  showToast("Lokasi dikirim!");
-};
-window.renderStickers = (type) => {
-  const grid = $("#stickerGrid");
-  $$(".segment-btn").forEach((b) => b.classList.remove("active"));
-  if (type === "emoji") {
-    $$(".segment-btn")[0].classList.add("active");
-    const emojis = [
-      "😀",
-      "😂",
-      "😍",
-      "😭",
-      "😡",
-      "👍",
-      "👎",
-      "🙏",
-      "🔥",
-      "❤️",
-      "🎉",
-      "👋",
-      "🤔",
-      "😴",
-      "🤢",
-      "🥳",
-    ];
-    grid.innerHTML = emojis
-      .map(
-        (e) =>
-          `<div class="sticker-item" onclick="sendSticker('${e}', 'emoji')">${e}</div>`
-      )
-      .join("");
-  } else {
-    $$(".segment-btn")[1].classList.add("active");
-    const stickers = [
-      "🍔",
-      "🍕",
-      "🍜",
-      "☕",
-      "🛵",
-      "✅",
-      "❌",
-      "⏳",
-      "🏠",
-      "💵",
-      "😋",
-      "🥡",
-    ];
-    grid.innerHTML = stickers
-      .map(
-        (s) =>
-          `<div class="sticker-item" style="font-size:50px" onclick="sendSticker('${s}', 'sticker')">${s}</div>`
-      )
-      .join("");
-  }
-};
-window.sendSticker = async (content, type) => {
-  $("#stickerSheet").classList.remove("visible");
-  await sendMessage(content, type === "emoji" ? "text" : "sticker");
-};
-async function sendMessage(content, type = "text") {
-  if (!state.user) return requireLogin();
-  if (!content || !state.chatWithVendorId) return;
-  const cid = `${state.user.id}_${state.chatWithVendorId}`;
-  const vid = state.chatWithVendorId;
-  await addDoc(collection(db, "chats", cid, "messages"), {
-    text: content,
-    type: type,
-    from: state.user.id,
-    ts: Date.now(),
-  });
-  let preview =
-    type === "text"
-      ? content
-      : type === "image"
-      ? "📷 Foto"
-      : type === "location"
-      ? "📍 Lokasi"
-      : "😊 Stiker";
-  const v = state.vendors.find((x) => x.id === vid);
-  await setDoc(
-    doc(db, "chats", cid),
-    {
-      userId: state.user.id,
-      userName: state.user.name,
-      vendorId: vid,
-      vendorName: v ? v.name : "Unknown",
-      lastMessage: preview,
-      lastUpdate: Date.now(),
-    },
-    { merge: true }
-  );
-}
-$("#sendChatBtn").addEventListener("click", () => {
-  const t = $("#chatInput").value.trim();
-  if (t) {
-    sendMessage(t, "text");
-    $("#chatInput").value = "";
-  }
-});
-
-// Chat Render Logic with Immersive Mode
-async function renderChat() {
-  const vid = state.chatWithVendorId;
-
-  // Enter Immersive Mobile Mode
-  if (window.innerWidth < 768) {
-    $(".chat-container").classList.add("mobile-mode");
-    $("#mainHeader").classList.add("hidden"); // Hide Main Header
-    $(".bottomNav").classList.add("hidden"); // Hide Bottom Nav
-  }
-
-  if (!vid) {
-    $("#chatWith").textContent = "Pilih Pedagang";
-    $("#chatBox").innerHTML =
-      "<div class='muted' style='text-align:center; padding:20px'>Pilih pedagang dulu.</div>";
-    return;
-  }
-  const v = state.vendors.find((x) => x.id === vid);
-  $("#chatWith").textContent = v ? v.name : "Unknown";
-  $("#chatBox").innerHTML = "";
-  if (state.unsubChats) state.unsubChats();
-  const q = query(
-    collection(db, "chats", `${state.user.id}_${vid}`, "messages"),
-    orderBy("ts", "asc")
-  );
-  state.unsubChats = onSnapshot(q, (s) => {
-    let lastDate = "";
-    $("#chatBox").innerHTML = s.docs
-      .map((d) => {
-        const m = d.data();
-        const dateObj = new Date(m.ts);
-        const dateStr = dateObj.toLocaleDateString();
-        let dateHeader = "";
-        if (dateStr !== lastDate) {
-          const displayDate =
-            dateStr === new Date().toLocaleDateString() ? "HARI INI" : dateStr;
-          dateHeader = `<div class="chat-date-separator">${displayDate}</div>`;
-          lastDate = dateStr;
-        }
-        const isMe = m.from === state.user.id;
-        const timeStr = dateObj.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        let contentHtml = "";
-        if (m.type === "image")
-          contentHtml = `<div class="bubble image ${
-            isMe ? "me" : "them"
-          }"><img src="${m.text}" loading="lazy" /></div>`;
-        else if (m.type === "location")
-          contentHtml = `<a href="${
-            m.text
-          }" target="_blank" class="bubble location ${
-            isMe ? "me" : "them"
-          }"><span>📍</span> <span>Lihat Lokasi</span></a>`;
-        else if (m.type === "sticker")
-          contentHtml = `<div class="bubble sticker ${isMe ? "me" : "them"}">${
-            m.text
-          }</div>`;
-        else
-          contentHtml = `<div class="bubble ${isMe ? "me" : "them"}">${
-            m.text
-          }<div class="bubble-meta"><span class="bubble-time">${timeStr}</span>${
-            isMe ? '<span class="bubble-status">✓✓</span>' : ""
-          }</div></div>`;
-        return `${dateHeader}<div style="display:flex; justify-content:${
-          isMe ? "flex-end" : "flex-start"
-        }; margin-bottom:4px; max-width:95%; align-self:${
-          isMe ? "flex-end" : "flex-start"
-        }">${contentHtml}</div>`;
-      })
-      .join("");
-    $("#chatBox").scrollTop = $("#chatBox").scrollHeight;
-  });
-}
-
-// Exit Immersive Mobile Mode
-window.closeChatMobile = () => {
-  state.chatWithVendorId = null;
-  $(".chat-container").classList.remove("mobile-mode");
-  $("#mainHeader").classList.remove("hidden");
-  $(".bottomNav").classList.remove("hidden");
-  // Optionally go back to Pick Chat list
-  window.openPickChat();
-};
-
-window.openPickChat = () => {
-  if (!state.user) return requireLogin();
-  const list = state.vendors.length
-    ? state.vendors
-        .map(
-          (v) =>
-            `<div class="listItem" onclick="selectChat('${v.id}')" style="cursor:pointer"><div class="rowBetween"><div style="display:flex; align-items:center; gap:10px;"><div style="background:#f1f5f9; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px;">${v.ico}</div><b>${v.name}</b></div><button class="btn small ghost">Chat</button></div></div>`
-        )
-        .join("")
-    : `<div class="empty-state-box">Belum ada pedagang aktif.</div>`;
-  $("#pickChatList").innerHTML = list;
-  openModal("pickChatModal");
-};
-$("#pickChatBtn").addEventListener("click", window.openPickChat);
-window.selectChat = (id) => {
-  state.chatWithVendorId = id;
-  closeModal("pickChatModal");
-  renderChat();
-};
-
-// --- CHAT VENDOR BTN (MODAL) ---
-$("#chatVendorBtn").addEventListener("click", () => {
-  if (!state.user) return requireLogin();
-  if (state.selectedVendorId) {
-    state.chatWithVendorId = state.selectedVendorId;
-    closeModal("vendorModal");
-    window.go("Messages"); // This calls renderChat()
-  } else {
-    showToast("Error: ID Vendor");
-  }
-});
-
-// --- NAVIGATION ---
-window.go = (n) => {
-  if ((n === "Orders" || n === "Messages") && !state.user) {
-    requireLogin();
-    return;
-  }
-  Object.values(screens).forEach((e) => e.classList.add("hidden"));
-  screens[n].classList.remove("hidden");
-
-  // Normal Navigation Reset
-  if (n !== "Messages") {
-    $("#mainHeader").classList.remove("hidden");
-    $(".bottomNav").classList.remove("hidden");
-  }
-
-  $$(".nav").forEach((b) => b.classList.toggle("active", b.dataset.go === n));
-  if (n === "Map") {
-    initMap();
-    setTimeout(() => state.map.invalidateSize(), 300);
-  }
-  if (n === "Messages") {
-    if (!state.chatWithVendorId) window.openPickChat();
-    else renderChat();
-  }
-};
-$$(".nav").forEach((b) =>
-  b.addEventListener("click", () => window.go(b.dataset.go))
-);
-
-// --- MENU & CART (SAME) ---
+// --- MENU & CART ---
 const MENU_DEFAULTS = {
   bakso: [{ id: "m1", name: "Bakso Urat", price: 15000 }],
   kopi: [{ id: "k1", name: "Kopi Susu", price: 12000 }],
@@ -1160,6 +1051,39 @@ function renderOrders() {
     })
     .join("");
 }
+$("#chatVendorBtn").addEventListener("click", () => {
+  if (!state.user) return requireLogin();
+  if (state.selectedVendorId) {
+    state.chatWithVendorId = state.selectedVendorId;
+    closeModal("vendorModal");
+    window.selectChat(state.selectedVendorId);
+  } else {
+    showToast("Error: ID Vendor");
+  }
+});
+function getChatId() {
+  return `${state.user.id}_${state.chatWithVendorId}`;
+}
+window.go = (n) => {
+  if ((n === "Orders" || n === "Messages") && !state.user) {
+    requireLogin();
+    return;
+  }
+  Object.values(screens).forEach((e) => e.classList.add("hidden"));
+  screens[n].classList.remove("hidden");
+  if (n === "Messages" && window.innerWidth < 768)
+    $("#mainHeader").classList.add("hidden");
+  else $("#mainHeader").classList.remove("hidden");
+  $$(".nav").forEach((b) => b.classList.toggle("active", b.dataset.go === n));
+  if (n === "Map") {
+    initMap();
+    setTimeout(() => state.map.invalidateSize(), 300);
+  }
+  if (n === "Messages") renderInbox();
+};
+$$(".nav").forEach((b) =>
+  b.addEventListener("click", () => window.go(b.dataset.go))
+);
 function renderProfile() {
   const container = $("#profileContent");
   if (state.user) {
@@ -1200,11 +1124,11 @@ function showToast(m, type = "info") {
     c.className = "toast-container";
     document.body.appendChild(c);
   }
-  const el = document.createElement("div");
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span>${msg}</span>`;
-  c.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+  const e = document.createElement("div");
+  e.className = "toast";
+  e.innerHTML = m;
+  c.appendChild(e);
+  setTimeout(() => e.remove(), 3000);
 }
 function initTheme() {
   const d = localStorage.getItem("pikul_theme") === "dark";
@@ -1259,3 +1183,17 @@ $$("[data-close]").forEach((el) =>
   el.addEventListener("click", () => closeModal(el.dataset.close))
 );
 initAuth();
+
+// ATTACHMENTS (Additional)
+window.toggleAttachMenu = () => {
+  $("#attachMenu").classList.toggle("visible");
+};
+window.toggleSticker = () => {
+  $("#attachMenu").classList.remove("visible");
+  $("#stickerSheet").classList.toggle("visible");
+  renderStickers("emoji");
+};
+window.triggerImage = () => {
+  $("#attachMenu").classList.remove("visible");
+  $("#imageInput").click();
+};
