@@ -824,141 +824,349 @@
         }
       }
 
-      /* --- DYNAMIC ISLAND CHAT STYLES (NEW) --- */
+      /* --- IMPROVED DYNAMIC ISLAND & CHAT STYLES --- */
       .dynamic-island {
         position: fixed;
-        top: 70px; /* Below header */
+        top: 10px;
         left: 50%;
         transform: translateX(-50%);
-        width: 140px; /* Small pill width */
-        height: 40px; /* Small pill height */
-        background: #000000;
-        border-radius: 30px;
+        width: 120px;
+        height: 36px;
+        background: #000;
+        border-radius: 40px;
         z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
         color: white;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         overflow: hidden;
+        cursor: pointer;
       }
 
-      /* State: Minimised (Pill) */
+      /* State: Expanded (Chat Mode) */
+      .dynamic-island.expanded {
+        width: 95%;
+        max-width: 400px;
+        height: 80vh; /* Tinggi Chat */
+        border-radius: 28px;
+        background: rgba(18, 18, 18, 0.96); /* Hampir solid hitam */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        cursor: default;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* --- MINIMIZED STATE --- */
       .di-content-min {
         display: flex;
         align-items: center;
         gap: 8px;
         opacity: 1;
-        transition: opacity 0.3s;
-        padding: 0 10px;
-        white-space: nowrap;
+        transition: opacity 0.2s;
+        pointer-events: none;
       }
-      .di-avatar-small {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-      }
-      .di-text-small {
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      /* State: Expanded (Full Chat) */
-      .dynamic-island.expanded {
-        width: 95%;
-        max-width: 450px;
-        height: 80vh; /* Takes most of screen */
-        top: 20px; /* Moves up slightly */
-        border-radius: 24px;
-        background: #e5ddd5; /* WhatsApp BG */
-        flex-direction: column;
-        justify-content: flex-start;
-        cursor: default;
-      }
-
       .dynamic-island.expanded .di-content-min {
         opacity: 0;
-        pointer-events: none;
         display: none;
       }
+      .di-avatar-anim {
+        width: 20px;
+        height: 20px;
+        background: #ff7a00;
+        border-radius: 50%;
+        animation: pulse-ring 2s infinite;
+      }
+      @keyframes pulse-ring {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 6px rgba(0, 0, 0, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+        }
+      }
 
-      /* Hidden Chat Container inside Island */
+      /* --- EXPANDED CONTENT (CHAT) --- */
       .di-chat-container {
         display: none;
         width: 100%;
         height: 100%;
         flex-direction: column;
         opacity: 0;
-        transition: opacity 0.4s ease 0.2s; /* Delay fade in */
-        background: #e5ddd5;
-        position: relative;
+        /* Delay muncul konten agar animasi island selesai dulu */
+        transition: opacity 0.3s ease 0.2s;
       }
-
       .dynamic-island.expanded .di-chat-container {
         display: flex;
         opacity: 1;
       }
 
-      /* Header inside Island */
+      /* Header */
       .di-header {
-        height: 60px;
-        background: #000; /* Header hitam agar menyatu dengan pulau */
-        color: white;
+        height: 65px;
+        padding: 0 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
-        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
+      .di-header-info h4 {
+        margin: 0;
+        font-size: 16px;
+        color: #fff;
+      }
+      .di-header-info span {
+        font-size: 11px;
+        color: #00ff88;
+        letter-spacing: 0.5px;
+      }
+
       .di-close-btn {
-        background: rgba(255, 255, 255, 0.2);
-        width: 30px;
-        height: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
+        color: #fff;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .di-close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: rotate(90deg);
+      }
+
+      /* Message List */
+      .di-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        scroll-behavior: smooth;
+      }
+      .di-messages::-webkit-scrollbar {
+        width: 4px;
+      }
+      .di-messages::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 4px;
+      }
+
+      /* Bubbles */
+      .bubble {
+        max-width: 75%;
+        padding: 10px 15px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.4;
+        position: relative;
+        animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        word-wrap: break-word;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .bubble.me {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #ff7a00, #ff5e00);
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 15px rgba(255, 94, 0, 0.2);
+      }
+      .bubble.them {
+        align-self: flex-start;
+        background: #333;
+        color: #eee;
+        border-bottom-left-radius: 4px;
+      }
+      .bubble img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin-top: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      /* Lokasi Bubble Style Baru */
+      .bubble.location {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 16px;
+        min-width: 180px;
+      }
+      .bubble.location.me {
+        background: linear-gradient(135deg, #ff7a00, #ff5e00);
+        color: white;
+      }
+
+      /* --- INPUT AREA & MENUS --- */
+      .di-input-area {
+        padding: 10px 15px;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        position: relative;
+      }
+
+      .icon-btn {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px;
+        transition: transform 0.2s, color 0.2s;
+      }
+      .icon-btn:hover {
+        color: #fff;
+        transform: scale(1.1);
+      }
+      .icon-btn:active {
+        transform: scale(0.9);
+      }
+
+      .chat-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 10px 15px;
+        color: white;
+        outline: none;
+        font-size: 14px;
+      }
+      .send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #ff7a00;
+        color: white;
+        border: none;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 16px;
-        border: none;
-        color: white;
+        box-shadow: 0 2px 10px rgba(255, 122, 0, 0.4);
+        transition: 0.2s;
+      }
+      .send-btn:active {
+        transform: scale(0.85);
       }
 
-      /* Messages area inside Island */
-      .di-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      /* Reuse bubble styles but ensure contrast */
-      .di-messages .bubble {
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-      }
-
-      /* Input area inside Island */
-      .di-input {
-        background: #f0f2f5;
+      /* Attachment Menu (Hidden by default) */
+      .attach-menu {
+        position: absolute;
+        bottom: 70px;
+        left: 15px;
+        background: rgba(40, 40, 40, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
         padding: 10px;
         display: flex;
-        gap: 10px;
-        border-radius: 0 0 24px 24px;
+        gap: 15px;
+        transform: scale(0);
+        opacity: 0;
+        transform-origin: bottom left;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
-      .di-input input {
-        flex: 1;
-        padding: 10px 15px;
-        border-radius: 20px;
-        border: none;
-        outline: none;
+      .attach-menu.active {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .attach-item {
+        text-align: center;
+        cursor: pointer;
+      }
+      .attach-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 5px;
+        transition: transform 0.2s;
+        color: white;
+      }
+      .attach-item:hover .attach-icon {
+        transform: translateY(-3px);
+      }
+
+      /* Emoji/Sticker Panel */
+      .emoji-panel {
+        height: 0;
+        overflow: hidden;
+        background: #1a1a1a;
+        transition: height 0.3s ease;
+      }
+      .emoji-panel.active {
+        height: 180px;
+        padding: 10px;
+      }
+
+      .panel-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+      }
+      .panel-tab {
+        color: #888;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .panel-tab.active {
+        color: #ff7a00;
+        border-bottom: 2px solid #ff7a00;
+      }
+
+      .emoji-grid,
+      .sticker-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        height: 130px;
+        overflow-y: auto;
+      }
+      .emoji-item {
+        font-size: 24px;
+        cursor: pointer;
+        text-align: center;
+      }
+      .sticker-item {
+        width: 100%;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .sticker-item:hover {
+        transform: scale(1.1);
       }
     </style>
   </head>
@@ -986,37 +1194,44 @@
       </div>
     </div>
 
+    <input
+      type="file"
+      id="imageInput"
+      accept="image/*"
+      style="display: none"
+      onchange="handleImageUpload(event)"
+    />
+
     <div
       id="dynamicIsland"
       class="dynamic-island hidden"
       onclick="expandIsland()"
     >
       <div class="di-content-min">
-        <div class="di-avatar-small">💬</div>
-        <span class="di-text-small">Chat Aktif</span>
+        <div class="di-avatar-anim"></div>
+        <span style="font-size: 13px; font-weight: 600">Pesan Masuk</span>
       </div>
 
       <div class="di-chat-container" onclick="event.stopPropagation()">
         <div class="di-header">
-          <div style="display: flex; align-items: center; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 12px">
             <div
               style="
-                width: 32px;
-                height: 32px;
+                width: 42px;
+                height: 42px;
                 background: #333;
                 border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                overflow: hidden;
               "
             >
-              👤
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                style="width: 100%; height: 100%; object-fit: cover"
+              />
             </div>
-            <div>
-              <b id="diChatName" style="font-size: 14px; display: block"
-                >Nama Toko</b
-              >
-              <span style="font-size: 10px; color: #ccc">Online</span>
+            <div class="di-header-info">
+              <h4 id="diChatName">Toko Pikul</h4>
+              <span>● Online</span>
             </div>
           </div>
           <button class="di-close-btn" onclick="collapseIsland(event)">
@@ -1026,43 +1241,83 @@
 
         <div id="diChatBox" class="di-messages"></div>
 
-        <div class="di-input">
-          <button class="btn-attach" onclick="toggleAttachMenu()">+</button>
-          <input id="diChatInput" placeholder="Tulis pesan..." />
-          <button
-            id="diSendBtn"
-            class="btn-attach"
-            style="background: var(--primary); color: white; border-radius: 50%"
-          >
+        <div id="attachMenu" class="attach-menu">
+          <div class="attach-item" onclick="triggerImageInput()">
+            <div
+              class="attach-icon"
+              style="background: linear-gradient(45deg, #ff0080, #7928ca)"
+            >
+              📷
+            </div>
+            <span style="font-size: 10px; color: #ccc">Galeri</span>
+          </div>
+          <div class="attach-item" onclick="sendLocation()">
+            <div
+              class="attach-icon"
+              style="background: linear-gradient(45deg, #00c6ff, #0072ff)"
+            >
+              📍
+            </div>
+            <span style="font-size: 10px; color: #ccc">Lokasi</span>
+          </div>
+          <div class="attach-item">
+            <div
+              class="attach-icon"
+              style="background: linear-gradient(45deg, #f09819, #edde5d)"
+            >
+              📄
+            </div>
+            <span style="font-size: 10px; color: #ccc">File</span>
+          </div>
+        </div>
+
+        <div class="di-input-area">
+          <button class="icon-btn" onclick="toggleAttachMenu()">⊕</button>
+          <input
+            id="diChatInput"
+            class="chat-input"
+            placeholder="Ketik pesan..."
+            autocomplete="off"
+          />
+          <button class="icon-btn" onclick="toggleEmojiPanel()">☺</button>
+          <button id="diSendBtn" class="send-btn" onclick="sendMessage()">
             ➤
           </button>
         </div>
 
-        <div id="attachMenu" class="attach-menu">
-          <div class="attach-item" onclick="triggerImage()">
-            <div class="attach-icon" style="background: #3b82f6">📷</div>
+        <div id="emojiPanel" class="emoji-panel">
+          <div class="panel-tabs">
+            <span class="panel-tab active" onclick="showTab('emoji')"
+              >EMOJI</span
+            >
+            <span class="panel-tab" onclick="showTab('sticker')">STIKER</span>
           </div>
-          <div class="attach-item" onclick="sendLocation()">
-            <div class="attach-icon" style="background: #10b981">📍</div>
-          </div>
-          <div class="attach-item" onclick="toggleSticker()">
-            <div class="attach-icon" style="background: #f59e0b">😊</div>
+
+          <div id="tabEmoji" class="emoji-grid"></div>
+
+          <div id="tabSticker" class="sticker-grid" style="display: none">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/742/742751.png"
+              class="sticker-item"
+              onclick="sendSticker(this.src)"
+            />
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/742/742752.png"
+              class="sticker-item"
+              onclick="sendSticker(this.src)"
+            />
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/190/190648.png"
+              class="sticker-item"
+              onclick="sendSticker(this.src)"
+            />
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4710/4710984.png"
+              class="sticker-item"
+              onclick="sendSticker(this.src)"
+            />
           </div>
         </div>
-        <div id="stickerSheet" class="sticker-sheet">
-          <div class="rowBetween" style="margin-bottom: 10px">
-            <b>Stiker</b
-            ><button class="iconBtn" onclick="toggleSticker()">✕</button>
-          </div>
-          <div id="stickerGrid" class="sticker-grid"></div>
-        </div>
-        <input
-          type="file"
-          id="imageInput"
-          accept="image/*"
-          style="display: none"
-          onchange="handleImageUpload(this)"
-        />
       </div>
     </div>
 
