@@ -111,6 +111,15 @@ window.closeAuth = () => {
   showApp();
 };
 
+// >>> TAMBAHAN: FUNGSI MASUK SEBAGAI TAMU <<<
+window.continueGuest = () => {
+  state.user = null;
+  localStorage.removeItem("pikul_user_id");
+  showApp();
+  bootApp();
+  showToast("Masuk sebagai Tamu");
+};
+
 $("#loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = $("#loginEmail").value.trim(),
@@ -461,7 +470,7 @@ window.sendLocation = () => {
   }
 
   // Generate Google Maps URL
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${state.you.lat},${state.you.lon}`;
+  const mapsUrl = `https://www.google.com/maps?q=${state.you.lat},${state.you.lon}`;
   sendMessage(mapsUrl, "location");
 };
 

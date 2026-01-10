@@ -41,7 +41,7 @@
         color: var(--text);
       }
 
-      /* --- AUTH STYLES (UPDATED FOR MOBILE) --- */
+      /* --- AUTH STYLES --- */
       .auth-page {
         width: 100%;
         height: 100vh;
@@ -93,7 +93,7 @@
         font-weight: 500;
       }
 
-      /* Form Container Scrollable fix for Mobile */
+      /* Updated Form Container for better scrolling */
       .auth-form-container {
         flex: 1;
         display: flex;
@@ -101,23 +101,20 @@
         align-items: center;
         padding: 20px;
         background: white;
-        overflow-y: auto; /* Allow scroll if screen is small */
+        overflow-y: auto;
         height: 100%;
-        justify-content: center; /* Center vertically if space allows */
       }
-      /* Fallback for very small screens */
-      @media (max-height: 600px) {
+      /* Center vertically on taller screens */
+      @media (min-height: 700px) {
         .auth-form-container {
-          justify-content: flex-start;
-          padding-top: 40px;
+          justify-content: center;
         }
       }
 
       .auth-card {
         width: 100%;
-        max-width: 400px;
-        padding: 10px;
-        box-sizing: border-box;
+        max-width: 420px;
+        padding: 10px 0;
       }
       .brand-header {
         display: flex;
@@ -138,27 +135,32 @@
         letter-spacing: -0.5px;
       }
       .auth-title {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 8px;
         letter-spacing: -0.5px;
       }
+      .auth-subtitle {
+        color: var(--text-muted);
+        margin-bottom: 32px;
+        font-size: 16px;
+      }
       .input-group {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
       }
       .input-label {
         display: block;
         font-size: 13px;
         font-weight: 600;
         color: #475569;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
       .input-field {
         width: 100%;
-        padding: 14px;
+        padding: 16px;
         border: 2px solid #e2e8f0;
-        border-radius: 12px;
+        border-radius: 14px;
         font-size: 15px;
         outline: none;
         transition: 0.2s;
@@ -184,14 +186,15 @@
         cursor: pointer;
         transition: 0.2s;
         margin-top: 10px;
-        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(255, 122, 0, 0.2);
       }
-      .btn-auth:active {
-        transform: scale(0.98);
+      .btn-auth:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
       }
       .switch-text {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 24px;
         color: #64748b;
         font-size: 14px;
       }
@@ -203,27 +206,50 @@
         margin-left: 4px;
       }
 
-      /* SELLER LINK FIX */
-      .seller-link-container {
+      /* --- NEW ACTIONS AREA (Guest & Seller) --- */
+      .auth-extra-actions {
         margin-top: 40px;
-        text-align: center;
         padding-top: 20px;
         border-top: 1px dashed #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
-      .seller-link {
-        display: inline-block;
+
+      .btn-guest {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        background: white;
         color: #64748b;
         font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-guest:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: #fff7ed;
+      }
+
+      .seller-link-box {
+        text-align: center;
+        font-size: 13px;
+        color: #94a3b8;
+      }
+      .seller-link-box a {
+        color: var(--primary);
         text-decoration: none;
         font-weight: 600;
-        padding: 10px 20px;
-        background: #f1f5f9;
-        border-radius: 20px;
-        transition: 0.2s;
       }
-      .seller-link:hover {
-        background: #e2e8f0;
-        color: var(--text);
+      .seller-link-box a:hover {
+        text-decoration: underline;
       }
 
       /* --- APP LAYOUT --- */
@@ -1413,10 +1439,14 @@
             </div>
           </form>
 
-          <div class="seller-link-container">
-            <a href="seller/index.html" class="seller-link"
-              >🛍️ Ingin berjualan di PIKUL?</a
-            >
+          <div class="auth-extra-actions">
+            <button class="btn-guest" onclick="continueGuest()">
+              🕵️ Lanjutkan Tanpa Akun
+            </button>
+
+            <div class="seller-link-box">
+              <a href="seller/index.html">🛍️ Ingin berjualan di PIKUL?</a>
+            </div>
           </div>
         </div>
       </div>
