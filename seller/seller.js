@@ -39,6 +39,8 @@ let state = {
   tempPayProof: null,
   pendingSub: null,
   approvedSub: null,
+  unreadCount: 0,
+  menuSalesCounts: {}, // NEW: Untuk menyimpan jumlah terjual
 };
 
 // --- GLOBAL EXPORTS ---
@@ -221,14 +223,317 @@ async function initApp() {
     onSnapshot(qOrd, (snap) => {
       state.orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderOrdersList();
-      calculateStats();
+      calculateStats(); // This now updates sales counts
     });
+
+    // LISTEN CHATS & SHOW BUBBLE
+    listenForChats();
+    initBubbleDrag(); // Init draggable bubble
   } catch (e) {
     console.error(e);
     $("#auth").classList.remove("hidden");
   }
 }
 
+function listenForChats() {
+  const q = query(
+    collection(db, "chats"),
+    where("vendorId", "==", state.vendor.id)
+  );
+  onSnapshot(q, (snap) => {
+    if (!snap.empty) {
+      // HANYA MUNCULKAN BUBBLE JIKA CHAT WINDOW SEDANG TIDAK AKTIF (TERTUTUP)
+      if (!$("#floatingChatWindow").classList.contains("active")) {
+        $("#floatingBubble").classList.remove("hidden");
+      }
+
+      // Logic Badge (Simple)
+      state.unreadCount = 0;
+      if (state.unreadCount > 0) {
+        $("#bubbleBadge").textContent = state.unreadCount;
+        $("#bubbleBadge").classList.add("visible");
+      }
+    }
+  });
+}
+
+// --- FLOATING BUBBLE LOGIC ---
+function initBubbleDrag() {
+  const bubble = document.getElementById("floatingBubble");
+  let isDragging = false;
+  let hasMoved = false;
+  let startX, startY, initialLeft, initialTop;
+
+  const startDrag = (e) => {
+    const evt = e.type === "touchstart" ? e.touches[0] : e;
+    startX = evt.clientX;
+    startY = evt.clientY;
+    const rect = bubble.getBoundingClientRect();
+    initialLeft = rect.left;
+    initialTop = rect.top;
+    isDragging = true;
+    hasMoved = false;
+  };
+
+  const onDrag = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    hasMoved = true;
+    const evt = e.type === "touchmove" ? e.touches[0] : e;
+    const dx = evt.clientX - startX;
+    const dy = evt.clientY - startY;
+
+    let newLeft = initialLeft + dx;
+    let newTop = initialTop + dy;
+
+    bubble.style.left = `${newLeft}px`;
+    bubble.style.top = `${newTop}px`;
+    bubble.style.right = "auto";
+    bubble.style.bottom = "auto";
+  };
+
+  const stopDrag = () => {
+    isDragging = false;
+  };
+
+  const onClickBubble = () => {
+    if (!hasMoved) {
+      openChatWindow();
+    }
+  };
+
+  bubble.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", onDrag);
+  window.addEventListener("mouseup", stopDrag);
+  bubble.addEventListener("click", onClickBubble);
+
+  bubble.addEventListener("touchstart", startDrag);
+  window.addEventListener("touchmove", onDrag, { passive: false });
+  window.addEventListener("touchend", stopDrag);
+}
+
+// --- CHAT WINDOW LOGIC (UPDATED FOR BUBBLE TOGGLE) ---
+
+// SAAT MEMBUKA WINDOW -> BUBBLE HILANG
+window.openChatWindow = () => {
+  $("#floatingChatWindow").classList.add("active");
+  $("#floatingBubble").classList.add("hidden"); // Sembunyikan bubble
+  loadChatList();
+  $("#viewChatList").classList.remove("hidden");
+  $("#viewChatRoom").classList.remove("active");
+};
+
+// SAAT MENUTUP WINDOW -> BUBBLE MUNCUL LAGI
+window.closeChatWindow = () => {
+  $("#floatingChatWindow").classList.remove("active");
+  $("#floatingBubble").classList.remove("hidden"); // Tampilkan bubble kembali
+};
+
+function loadChatList() {
+  const q = query(
+    collection(db, "chats"),
+    where("vendorId", "==", state.vendor.id)
+  );
+  onSnapshot(q, (snap) => {
+    let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    list.sort((a, b) => b.lastUpdate - a.lastUpdate);
+    $("#chatListContent").innerHTML =
+      list
+        .map(
+          (c) =>
+            `<div class="chat-entry" onclick="openChatRoom('${c.id}', '${c.userName}')">
+                <div class="chat-avatar">👤</div>
+                <div class="chat-info">
+                    <span class="chat-name">${c.userName}</span>
+                    <span class="chat-last">${c.lastMessage}</span>
+                </div>
+            </div>`
+        )
+        .join("") ||
+      '<div style="text-align:center; padding:20px; color:#999;">Belum ada chat.</div>';
+  });
+}
+
+window.openChatRoom = (chatId, userName) => {
+  state.activeChatId = chatId;
+  $("#viewChatRoom").classList.add("active");
+  $("#roomTitle").textContent = userName;
+
+  if (state.unsubMsg) state.unsubMsg();
+  const q = query(
+    collection(db, "chats", chatId, "messages"),
+    orderBy("ts", "asc")
+  );
+
+  state.unsubMsg = onSnapshot(q, (snap) => {
+    $("#msgBox").innerHTML = snap.docs
+      .map((d) => {
+        const m = d.data();
+        const isMe = m.from === state.vendor.id;
+        let contentHtml = "";
+        if (m.type === "image")
+          contentHtml = `<div class="bubble me"><img src="${m.text}" loading="lazy" /></div>`;
+        else if (m.type === "sticker")
+          contentHtml = `<div class="bubble sticker me"><img src="${m.text}" style="width:100px; border:none;" /></div>`;
+        else if (m.type === "location") {
+          const link = m.text.startsWith("http") ? m.text : "#";
+          contentHtml = `<a href="${link}" target="_blank" class="bubble location ${
+            isMe ? "me" : "them"
+          }"><span>📍</span> Lokasi Toko</a>`;
+        } else
+          contentHtml = `<div class="bubble ${isMe ? "me" : "them"}">${
+            m.text
+          }</div>`;
+        return `<div style="display:flex; justify-content:${
+          isMe ? "flex-end" : "flex-start"
+        }; margin-bottom: 6px;">${contentHtml}</div>`;
+      })
+      .join("");
+    scrollToBottom();
+  });
+};
+
+window.backToChatList = () => {
+  $("#viewChatRoom").classList.remove("active");
+  state.activeChatId = null;
+  if (state.unsubMsg) state.unsubMsg();
+};
+
+function scrollToBottom() {
+  const chatBox = document.getElementById("msgBox");
+  if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// --- SENDING MESSAGES ---
+window.sendMessage = async (content = null, type = "text") => {
+  if (!state.activeChatId) return;
+  if (!content) {
+    const input = document.getElementById("replyInput");
+    content = input.value.trim();
+    input.value = "";
+    input.focus();
+  }
+
+  if (!content) return;
+
+  await addDoc(collection(db, "chats", state.activeChatId, "messages"), {
+    text: content,
+    type: type,
+    from: state.vendor.id,
+    ts: Date.now(),
+  });
+
+  let preview =
+    type === "text"
+      ? content
+      : type === "image"
+      ? "📷 Foto"
+      : type === "sticker"
+      ? "😊 Stiker"
+      : "📍 Lokasi";
+  await updateDoc(doc(db, "chats", state.activeChatId), {
+    lastMessage: "Anda: " + preview,
+    lastUpdate: Date.now(),
+  });
+
+  scrollToBottom();
+};
+
+$("#sendReplyBtn").addEventListener("click", () => sendMessage());
+$("#replyInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
+// --- CHAT MENUS ---
+window.toggleAttachMenu = () => {
+  $("#attachMenu").classList.toggle("active");
+  $("#emojiPanel").classList.remove("active");
+};
+window.toggleEmojiPanel = () => {
+  $("#emojiPanel").classList.toggle("active");
+  $("#attachMenu").classList.remove("active");
+  if ($("#tabEmoji").children.length === 0) {
+    const emojis = [
+      "😀",
+      "😁",
+      "😂",
+      "😍",
+      "😎",
+      "😭",
+      "😡",
+      "👍",
+      "👎",
+      "🙏",
+      "🔥",
+      "✨",
+      "❤️",
+      "🛒",
+      "📦",
+      "🏍️",
+    ];
+    $("#tabEmoji").innerHTML = emojis
+      .map(
+        (e) =>
+          `<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`
+      )
+      .join("");
+  }
+};
+window.showTab = (type) => {
+  $("#tabEmoji").style.display = type === "emoji" ? "grid" : "none";
+  $("#tabSticker").style.display = type === "sticker" ? "grid" : "none";
+  $$(".panel-tab").forEach((t) => t.classList.remove("active"));
+  event.target.classList.add("active");
+  if (type === "sticker" && $("#tabSticker").children.length === 0) {
+    const stickers = [
+      "🍔",
+      "🍕",
+      "🍜",
+      "☕",
+      "🛵",
+      "✅",
+      "❌",
+      "⏳",
+      "🏠",
+      "💵",
+      "😋",
+      "🥡",
+    ];
+    $("#tabSticker").innerHTML = stickers
+      .map(
+        (s) =>
+          `<div class="sticker-item" style="font-size:40px; text-align:center;" onclick="sendSticker('${s}')">${s}</div>`
+      )
+      .join("");
+  }
+};
+window.insertEmoji = (e) => {
+  $("#replyInput").value += e;
+};
+window.triggerImage = () => {
+  $("#imageInput").click();
+  $("#attachMenu").classList.remove("active");
+};
+window.handleImageUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const base64 = await compressImage(file, 500, 0.7);
+    sendMessage(base64, "image");
+  }
+};
+window.sendLocation = async () => {
+  $("#attachMenu").classList.remove("active");
+  if (!state.vendor.lat || !state.vendor.lon)
+    return alert("Lokasi toko belum diset!");
+  const mapsUrl = `https://www.google.com/maps?q=${state.vendor.lat},${state.vendor.lon}`;
+  sendMessage(mapsUrl, "location");
+};
+window.sendSticker = (src) => {
+  sendMessage(src, "sticker");
+  document.getElementById("emojiPanel").classList.remove("active");
+};
+
+// --- RENDER & OTHER UI ---
 function renderUI() {
   if (!state.vendor) return;
   $("#vName").textContent = state.vendor.name;
@@ -266,10 +571,12 @@ function renderUI() {
     enableShop();
   }
 
+  // UPDATE: Menambahkan Jumlah Terjual di UI Menu
   $("#menuList").innerHTML =
     (state.vendor.menu || [])
-      .map(
-        (m, idx) => `
+      .map((m, idx) => {
+        const soldCount = state.menuSalesCounts[m.name] || 0; // Ambil jumlah terjual dari map
+        return `
     <div class="menu-card">
       <div style="display:flex; align-items:center;">
         ${
@@ -277,18 +584,24 @@ function renderUI() {
             ? `<img src="${m.image}" class="menu-thumb" />`
             : '<div class="menu-thumb" style="display:flex;align-items:center;justify-content:center;">🍲</div>'
         }
-        <div><div style="font-weight:700">${
-          m.name
-        }</div><div style="color:var(--text-muted); font-size:13px;">${rupiah(
-          m.price
-        )}</div></div>
+        <div>
+            <div style="font-weight:700">${m.name}</div>
+            <div style="color:var(--text-muted); font-size:13px;">${rupiah(
+              m.price
+            )}</div>
+            ${
+              soldCount > 0
+                ? `<div class="sold-count">🔥 ${soldCount} Terjual</div>`
+                : ""
+            }
+        </div>
       </div>
       <div class="menu-actions">
         <button class="btn-icon-action btn-edit" onclick="openEditMenu(${idx})">✎</button>
         <button class="btn-icon-action btn-del" onclick="deleteMenu(${idx})">🗑</button>
       </div>
-    </div>`
-      )
+    </div>`;
+      })
       .join("") || `<div class="empty-state-box">Belum ada menu.</div>`;
 }
 
@@ -377,226 +690,11 @@ window.submitSubscription = async (method) => {
   alert("Permintaan dikirim! Tunggu validasi Admin.");
 };
 
-// --- CHAT LOGIC (IMPROVED) ---
-window.toggleAttachMenu = () => {
-  $("#attachMenu").classList.toggle("active");
-  $("#emojiPanel").classList.remove("active");
-};
-window.toggleEmojiPanel = () => {
-  $("#emojiPanel").classList.toggle("active");
-  $("#attachMenu").classList.remove("active");
-  // Init Tabs
-  if ($("#tabEmoji").children.length === 0) {
-    const emojis = [
-      "😀",
-      "😁",
-      "😂",
-      "😍",
-      "😎",
-      "😭",
-      "😡",
-      "👍",
-      "👎",
-      "🙏",
-      "🔥",
-      "✨",
-      "❤️",
-      "🛒",
-      "📦",
-      "🏍️",
-    ];
-    $("#tabEmoji").innerHTML = emojis
-      .map(
-        (e) =>
-          `<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`
-      )
-      .join("");
-  }
-  // Sticker logic same as customer app if needed
-  if ($("#tabSticker").children.length === 0) {
-    const stickers = [
-      "🍔",
-      "🍕",
-      "🍜",
-      "☕",
-      "🛵",
-      "✅",
-      "❌",
-      "⏳",
-      "🏠",
-      "💵",
-      "😋",
-      "🥡",
-    ];
-    $("#tabSticker").innerHTML = stickers
-      .map(
-        (s) =>
-          `<div class="sticker-item" style="font-size:50px" onclick="sendSticker('${s}', 'sticker')">${s}</div>`
-      )
-      .join("");
-  }
-};
-window.showTab = (type) => {
-  $("#tabEmoji").style.display = type === "emoji" ? "grid" : "none";
-  $("#tabSticker").style.display = type === "sticker" ? "grid" : "none";
-  const tabs = $$(".panel-tab");
-  tabs[0].classList.toggle("active", type === "emoji");
-  tabs[1].classList.toggle("active", type === "sticker");
-};
-window.insertEmoji = (e) => {
-  $("#replyInput").value += e;
-};
-window.triggerImage = () => {
-  $("#imageInput").click();
-  $("#attachMenu").classList.remove("active");
-};
-window.handleImageUpload = async (input) => {
-  if (input.files && input.files[0]) {
-    try {
-      const compressed = await compressImage(input.files[0], 500, 0.7);
-      await sendMessage(compressed, "image");
-    } catch (e) {
-      alert("Gagal kirim: " + e.message);
-    }
-    input.value = "";
-  }
-};
-window.sendLocation = async () => {
-  $("#attachMenu").classList.remove("active");
-  if (!state.vendor.lat || !state.vendor.lon)
-    return alert("Lokasi toko belum diset!");
-  const mapsUrl = `https://www.google.com/maps?q=${state.vendor.lat},${state.vendor.lon}`;
-  await sendMessage(mapsUrl, "location");
-};
-window.sendSticker = async (content, type) => {
-  $("#emojiPanel").classList.remove("active");
-  await sendMessage(content, type === "emoji" ? "text" : "sticker");
-};
-
-async function sendMessage(content, type = "text") {
-  if (!state.activeChatId) return;
-  if (!content && type === "text") {
-    content = $("#replyInput").value.trim();
-    if (!content) return;
-    $("#replyInput").value = "";
-  }
-
-  await addDoc(collection(db, "chats", state.activeChatId, "messages"), {
-    text: content,
-    type: type,
-    from: state.vendor.id,
-    ts: Date.now(),
-  });
-
-  let preview =
-    type === "text"
-      ? content
-      : type === "image"
-      ? "📷 Foto"
-      : type === "location"
-      ? "📍 Lokasi"
-      : "😊 Stiker";
-  await updateDoc(doc(db, "chats", state.activeChatId), {
-    lastMessage: "Anda: " + preview,
-    lastUpdate: Date.now(),
-  });
-  scrollToBottom();
-}
-
-$("#sendReplyBtn").addEventListener("click", () => sendMessage(null, "text"));
-$("#replyInput").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage(null, "text");
-});
-
-window.openChat = (chatId, userName) => {
-  state.activeChatId = chatId;
-  $("#chatRoom").classList.add("active");
-  $("#chattingWith").textContent = userName;
-  $$(".chat-entry").forEach((el) => el.classList.remove("active"));
-
-  if (state.unsubMsg) state.unsubMsg();
-  const q = query(
-    collection(db, "chats", chatId, "messages"),
-    orderBy("ts", "asc")
-  );
-  state.unsubMsg = onSnapshot(q, (snap) => {
-    $("#msgBox").innerHTML = snap.docs
-      .map((d) => {
-        const m = d.data();
-        const isMe = m.from === state.vendor.id;
-        let contentHtml = "";
-        if (m.type === "image")
-          contentHtml = `<div class="bubble me"><img src="${m.text}" loading="lazy" /></div>`;
-        else if (m.type === "sticker")
-          contentHtml = `<div class="bubble sticker me"><img src="${m.text}" style="width:100px; border:none;" /></div>`;
-        else if (m.type === "location") {
-          const link = m.text.startsWith("http") ? m.text : "#";
-          contentHtml = `<a href="${link}" target="_blank" class="bubble location ${
-            isMe ? "me" : "them"
-          }"><span>📍</span> Lokasi Toko</a>`;
-        } else
-          contentHtml = `<div class="bubble ${isMe ? "me" : "them"}">${
-            m.text
-          }</div>`;
-        return `<div style="display:flex; justify-content:${
-          isMe ? "flex-end" : "flex-start"
-        }; margin-bottom: 6px;">${contentHtml}</div>`;
-      })
-      .join("");
-    scrollToBottom();
-  });
-};
-window.closeChat = () => {
-  state.activeChatId = null;
-  $("#chatRoom").classList.remove("active");
-  if (state.unsubMsg) state.unsubMsg();
-};
-function scrollToBottom() {
-  const chatBox = document.getElementById("msgBox");
-  if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-}
-function loadChatList() {
-  const q = query(
-    collection(db, "chats"),
-    where("vendorId", "==", state.vendor.id)
-  );
-  onSnapshot(q, (snap) => {
-    let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    list.sort((a, b) => b.lastUpdate - a.lastUpdate);
-    $("#chatList").innerHTML =
-      list
-        .map(
-          (c) =>
-            `<div class="chat-entry" onclick="openChat('${c.id}', '${
-              c.userName
-            }')">
-                <div style="width:40px; height:40px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px;">👤</div>
-                <div style="flex:1; min-width:0;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><b style="font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
-                      c.userName
-                    }</b><span style="font-size:11px; color:#94a3b8;">${new Date(
-              c.lastUpdate || Date.now()
-            ).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}</span></div>
-                    <div style="font-size:13px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${
-                      c.lastMessage
-                    }</div>
-                </div>
-            </div>`
-        )
-        .join("") ||
-      '<div style="text-align:center; padding:40px; color:#94a3b8;"><div style="font-size:40px; margin-bottom:10px;">💬</div>Belum ada chat.</div>';
-  });
-}
-
-// --- ORDERS & NAVIGATION ---
+// --- NAVIGATION ---
 window.goSeller = (screen) => {
   $$(".nav-item").forEach((n) => n.classList.remove("active"));
   $$(".sb-item").forEach((n) => n.classList.remove("active"));
   $("#sellerHome").classList.add("hidden");
-  $("#sellerChat").classList.add("hidden");
   $("#sellerOrders").classList.add("hidden");
   if (screen === "Home") {
     $$(".nav-item")[0].classList.add("active");
@@ -606,15 +704,10 @@ window.goSeller = (screen) => {
     $$(".nav-item")[1].classList.add("active");
     $$(".sb-item")[1].classList.add("active");
     $("#sellerOrders").classList.remove("hidden");
-  } else {
-    $$(".nav-item")[2].classList.add("active");
-    $$(".sb-item")[2].classList.add("active");
-    $("#sellerChat").classList.remove("hidden");
-    loadChatList();
   }
 };
 
-// ... (Rest of functions for Map, Logo Upload, Menu Management, etc. remain the same as previous) ...
+// ... Rest of map & image upload functions from previous code ...
 window.triggerLogoUpload = () => $("#shopLogoInput").click();
 window.handleLogoUpload = async (input) => {
   if (input.files[0]) {
@@ -845,6 +938,8 @@ $("#statusToggle").addEventListener("change", async (e) => {
     isLive: e.target.checked,
   });
 });
+
+// --- UPDATED: CALCULATE SALES PER ITEM ---
 function calculateStats() {
   const now = new Date();
   const d = new Date(
@@ -867,6 +962,10 @@ function calculateStats() {
     week = 0,
     month = 0,
     total = 0;
+
+  // Reset Sales Counts Map
+  let counts = {};
+
   state.orders.forEach((o) => {
     if (o.status === "Selesai") {
       const t = new Date(o.createdAt).getTime();
@@ -875,13 +974,27 @@ function calculateStats() {
       if (t >= w) week += val;
       if (t >= m) month += val;
       total += val;
+
+      // Count Items
+      if (o.items && Array.isArray(o.items)) {
+        o.items.forEach((i) => {
+          counts[i.name] = (counts[i.name] || 0) + i.qty;
+        });
+      }
     }
   });
+
+  // Save to state & Re-render menu to show badges
+  state.menuSalesCounts = counts;
   $("#statToday").textContent = rupiah(today);
   $("#statWeek").textContent = rupiah(week);
   $("#statMonth").textContent = rupiah(month);
   $("#statTotal").textContent = rupiah(total);
+
+  // Call renderUI to update badges (if vendor data is already loaded)
+  if (state.vendor) renderUI();
 }
+
 function initMap() {
   if (state.map) return;
   state.map = L.map("sellerMap").setView(
