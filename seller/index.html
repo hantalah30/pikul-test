@@ -41,7 +41,7 @@
         color: var(--text);
       }
 
-      /* --- NEW AUTH LAYOUT --- */
+      /* --- AUTH LAYOUT --- */
       .auth-page {
         width: 100%;
         height: 100vh;
@@ -50,20 +50,17 @@
         justify-content: center;
         background: #fff;
       }
-
       .auth-split {
         width: 100%;
         height: 100%;
         display: flex;
         overflow: hidden;
       }
-
-      /* Left Side (Visual) */
       .auth-visual {
         flex: 1;
         background: linear-gradient(135deg, #ff7a00, #ff9a3d);
         position: relative;
-        display: none; /* Hidden on mobile */
+        display: none;
         flex-direction: column;
         justify-content: center;
         padding: 60px;
@@ -95,13 +92,6 @@
         font-weight: 800;
         letter-spacing: -1px;
       }
-      .visual-content p {
-        font-size: 18px;
-        line-height: 1.6;
-        opacity: 0.9;
-      }
-
-      /* Right Side (Form) */
       .auth-form-side {
         flex: 1;
         max-width: 600px;
@@ -109,20 +99,16 @@
         background: white;
         display: flex;
         flex-direction: column;
-        /* justify-content: center;  <-- Removed to prevent centering issues on small screens */
         padding: 20px;
-        overflow-y: auto; /* Enable scroll */
+        overflow-y: auto;
         height: 100%;
         box-sizing: border-box;
       }
-
-      /* Center content if screen is tall enough */
       @media (min-height: 700px) {
         .auth-form-side {
           justify-content: center;
         }
       }
-
       .auth-card {
         width: 100%;
         max-width: 400px;
@@ -146,7 +132,6 @@
         color: var(--text);
         letter-spacing: -0.5px;
       }
-
       .auth-title {
         font-size: 28px;
         font-weight: 700;
@@ -158,8 +143,6 @@
         margin-bottom: 32px;
         font-size: 15px;
       }
-
-      /* Form Elements */
       .form-group {
         margin-bottom: 20px;
       }
@@ -183,13 +166,11 @@
         color: #334155;
         box-sizing: border-box;
       }
-      .form-input:focus,
-      .form-select:focus {
+      .form-input:focus {
         border-color: var(--primary);
         background: white;
         box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.1);
       }
-
       .btn-auth {
         width: 100%;
         padding: 16px;
@@ -202,16 +183,11 @@
         cursor: pointer;
         transition: 0.2s;
         margin-top: 10px;
-        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.25);
       }
       .btn-auth:hover {
         background: var(--primary-dark);
         transform: translateY(-2px);
       }
-      .btn-auth:active {
-        transform: translateY(0);
-      }
-
       .auth-switch {
         text-align: center;
         margin-top: 24px;
@@ -224,11 +200,6 @@
         text-decoration: none;
         cursor: pointer;
       }
-      .auth-link:hover {
-        text-decoration: underline;
-      }
-
-      /* UPDATED: Customer Link Styling */
       .customer-link-container {
         margin-top: 40px;
         text-align: center;
@@ -254,7 +225,7 @@
         transform: translateY(-2px);
       }
 
-      /* App Layout Styles */
+      /* --- APP LAYOUT --- */
       .app-layout {
         display: flex;
         height: 100vh;
@@ -280,7 +251,7 @@
         position: relative;
       }
 
-      /* --- CHAT & OTHER STYLES --- */
+      /* --- CHAT STYLES (PREMIUM UI UPDATE) --- */
       .chat-layout {
         display: flex;
         height: calc(100vh - 140px);
@@ -297,6 +268,7 @@
         display: flex;
         flex-direction: column;
         z-index: 10;
+        border-right: 1px solid #f1f5f9;
       }
       .chat-list {
         flex: 1;
@@ -311,20 +283,22 @@
         gap: 12px;
         transition: 0.2s;
       }
-      .chat-entry:active {
+      .chat-entry:active,
+      .chat-entry:hover {
         background: #f8fafc;
       }
       .chat-entry.active {
         background: #fff7ed;
         border-left: 3px solid var(--primary);
       }
+
       .chat-room {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: #fdfdfd;
+        background: #ffffff;
         display: flex;
         flex-direction: column;
         z-index: 20;
@@ -335,192 +309,278 @@
         transform: translateX(0);
       }
       .chat-room-header {
-        height: 60px;
+        height: 65px;
         padding: 0 16px;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         gap: 12px;
-        background: white;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
         flex-shrink: 0;
+        z-index: 5;
       }
+
+      /* Message Area */
       .chat-messages {
         flex: 1;
         overflow-y: auto;
-        padding: 16px;
-        background-color: #f0f2f5;
-        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-        background-size: 20px 20px;
+        padding: 20px;
+        background-color: #fafafa;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
+        scroll-behavior: smooth;
       }
+      .chat-messages::-webkit-scrollbar {
+        width: 4px;
+      }
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+
+      /* Input Bar */
       .chat-input-bar {
-        padding: 10px 16px;
+        padding: 12px 16px;
         background: white;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         flex-shrink: 0;
         position: relative;
       }
       .reply-input {
         flex: 1;
-        height: 40px;
-        border: 1px solid #cbd5e1;
-        padding: 0 16px;
-        border-radius: 20px;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        padding: 12px 16px;
+        border-radius: 24px;
         outline: none;
         font-size: 14px;
+        transition: 0.2s;
       }
       .reply-input:focus {
+        background: white;
         border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.1);
       }
-      .btn-circle {
+
+      .icon-btn {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 22px;
+        cursor: pointer;
+        padding: 4px;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn:hover {
+        color: var(--primary);
+        transform: scale(1.1);
+      }
+      .btn-send-round {
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        background: var(--primary);
+        color: white;
         border: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 18px;
         cursor: pointer;
+        box-shadow: 0 4px 10px rgba(255, 122, 0, 0.3);
         transition: 0.2s;
-        flex-shrink: 0;
       }
-      .btn-back {
-        background: transparent;
-        color: var(--text);
-        font-size: 24px;
-        margin-right: -8px;
+      .btn-send-round:active {
+        transform: scale(0.9);
       }
-      .btn-attach {
-        background: #f1f5f9;
-        color: var(--text-muted);
-      }
-      .btn-send {
-        background: var(--primary);
-        color: white;
-        padding-left: 4px;
-      }
+
+      /* Bubbles Premium */
       .bubble {
-        padding: 10px 14px;
-        border-radius: 16px;
         max-width: 75%;
+        padding: 10px 15px;
+        border-radius: 18px;
         font-size: 14px;
         line-height: 1.4;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
         position: relative;
+        animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Seller (Me) */
       .bubble.me {
-        background: var(--primary);
+        align-self: flex-end;
+        background: linear-gradient(135deg, #ff7a00, #ff9a3d);
         color: white;
         border-bottom-right-radius: 4px;
-        align-self: flex-end;
+        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.2);
       }
+
+      /* Customer (Them) */
       .bubble.them {
-        background: white;
-        color: var(--text);
-        border-bottom-left-radius: 4px;
         align-self: flex-start;
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 4px;
       }
-      .bubble.image {
-        padding: 4px;
-        background: white !important;
-      }
-      .bubble.image img {
+
+      .bubble img {
+        max-width: 100%;
         border-radius: 12px;
-        width: 100%;
-        max-width: 240px;
         display: block;
+        margin-top: 4px;
       }
-      .bubble.sticker {
-        background: transparent !important;
-        box-shadow: none;
-        font-size: 50px;
-        padding: 0;
-      }
+
+      /* Location Bubble */
       .bubble.location {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         text-decoration: none;
-        font-weight: 600;
-        background: white !important;
-        color: #0284c7 !important;
         padding: 12px;
-      }
-      .attach-menu {
-        position: absolute;
-        bottom: 70px;
-        left: 10px;
-        background: white;
         border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        padding: 10px;
-        display: flex;
-        gap: 12px;
-        transform: scale(0);
-        transform-origin: bottom left;
-        transition: 0.2s;
+        min-width: 180px;
+      }
+      .bubble.location.me {
+        background: linear-gradient(135deg, #ff7a00, #ff9a3d);
+        color: white;
+      }
+      .bubble.location.them {
+        background: white;
+        color: #334155;
+      }
+
+      /* Menus (Attachment & Emoji) */
+      .chat-menus-container {
+        position: absolute;
+        bottom: 75px;
+        left: 16px;
         z-index: 50;
       }
-      .attach-menu.visible {
+
+      .attach-menu {
+        background: white;
+        border-radius: 16px;
+        padding: 12px;
+        display: flex;
+        gap: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border: 1px solid #f1f5f9;
+        transform: scale(0);
+        transform-origin: bottom left;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: max-content;
+      }
+      .attach-menu.active {
         transform: scale(1);
       }
       .attach-item {
+        text-align: center;
+        cursor: pointer;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 4px;
-        cursor: pointer;
       }
       .attach-icon {
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 20px;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
       }
-      .sticker-sheet {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-radius: 20px 20px 0 0;
-        padding: 16px;
-        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
-        transform: translateY(100%);
-        transition: 0.3s;
-        height: 300px;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
+      .attach-item:hover .attach-icon {
+        transform: translateY(-3px);
       }
-      .sticker-sheet.visible {
-        transform: translateY(0);
-      }
-      .sticker-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        overflow-y: auto;
-        flex: 1;
-      }
-      .sticker-item {
-        font-size: 36px;
-        text-align: center;
-        padding: 8px;
-        cursor: pointer;
+      .attach-label {
+        font-size: 10px;
+        color: #64748b;
+        font-weight: 600;
       }
 
-      /* IMAGE UPLOAD STYLES */
+      .emoji-panel {
+        height: 0;
+        overflow: hidden;
+        background: #fff;
+        border-top: 1px solid #f1f5f9;
+        transition: height 0.3s ease;
+      }
+      .emoji-panel.active {
+        height: 200px;
+        padding: 10px;
+      }
+      .panel-tabs {
+        display: flex;
+        gap: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+      }
+      .panel-tab {
+        font-size: 12px;
+        font-weight: 700;
+        color: #94a3b8;
+        cursor: pointer;
+        padding-bottom: 4px;
+      }
+      .panel-tab.active {
+        color: var(--primary);
+        border-bottom: 2px solid var(--primary);
+      }
+      .emoji-grid,
+      .sticker-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        height: 150px;
+        overflow-y: auto;
+      }
+      .emoji-item {
+        font-size: 24px;
+        cursor: pointer;
+        text-align: center;
+        padding: 4px;
+        border-radius: 8px;
+      }
+      .emoji-item:hover {
+        background: #f1f5f9;
+      }
+      .sticker-item {
+        width: 100%;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .sticker-item:hover {
+        transform: scale(1.1);
+      }
+
+      /* Other UI */
       .image-upload-box {
         width: 100%;
         height: 150px;
@@ -571,7 +631,6 @@
         height: 100%;
         object-fit: cover;
       }
-
       .payment-card {
         padding: 16px;
         border-radius: 16px;
@@ -604,17 +663,14 @@
         cursor: pointer;
         transition: 0.2s;
       }
-      .qris-preview:hover {
-        border-color: var(--primary);
+      .qris-preview.has-image {
+        border: 2px solid var(--primary);
+        background: white;
       }
       .qris-preview img {
         width: 100%;
         height: 100%;
         object-fit: contain;
-      }
-      .qris-preview.has-image {
-        border: 2px solid var(--primary);
-        background: white;
       }
 
       /* Modals */
@@ -688,7 +744,6 @@
       .hidden {
         display: none !important;
       }
-
       .alert-card {
         padding: 12px 16px;
         border-radius: 12px;
@@ -1025,8 +1080,7 @@
                         type="checkbox"
                         id="chkCash"
                         onchange="updatePaymentMethod()"
-                      />
-                      <span>💵 Tunai</span>
+                      /><span>💵 Tunai</span>
                     </label>
                   </div>
                   <div
@@ -1053,8 +1107,7 @@
                           type="checkbox"
                           id="chkQris"
                           onchange="updatePaymentMethod()"
-                        />
-                        <span>📱 QRIS</span>
+                        /><span>📱 QRIS</span>
                       </label>
                       <small class="muted" id="qrisStatus">Belum Aktif</small>
                     </div>
@@ -1112,7 +1165,6 @@
                     <p>Pembayaran Anda sedang dicek Admin.</p>
                   </div>
                 </div>
-
                 <div
                   id="subActivation"
                   class="alert-card info hidden"
@@ -1148,8 +1200,7 @@
                           border-radius: 8px;
                           border: 1px solid #ccc;
                         "
-                      />
-                      <button
+                      /><button
                         onclick="redeemCode()"
                         class="btn primary"
                         style="background: #166534"
@@ -1159,7 +1210,6 @@
                     </div>
                   </div>
                 </div>
-
                 <div
                   id="subActive"
                   class="alert-card success hidden"
@@ -1217,7 +1267,7 @@
               </div>
               <div id="chatRoom" class="chat-room">
                 <div class="chat-room-header">
-                  <button onclick="closeChat()" class="btn-circle btn-back">
+                  <button onclick="closeChat()" class="icon-btn btn-back">
                     ←
                   </button>
                   <div
@@ -1245,32 +1295,54 @@
                   </div>
                 </div>
                 <div id="msgBox" class="chat-messages"></div>
-                <div class="chat-input-bar">
+
+                <div class="chat-menus-container">
                   <div id="attachMenu" class="attach-menu">
                     <div class="attach-item" onclick="triggerImage()">
-                      <div class="attach-icon" style="background: #3b82f6">
+                      <div
+                        class="attach-icon"
+                        style="
+                          background: linear-gradient(45deg, #ff0080, #7928ca);
+                        "
+                      >
                         📷
                       </div>
-                      <span style="font-size: 10px">Foto</span>
+                      <span class="attach-label">Galeri</span>
                     </div>
                     <div class="attach-item" onclick="sendLocation()">
-                      <div class="attach-icon" style="background: #10b981">
+                      <div
+                        class="attach-icon"
+                        style="
+                          background: linear-gradient(45deg, #00c6ff, #0072ff);
+                        "
+                      >
                         📍
                       </div>
-                      <span style="font-size: 10px">Lokasi</span>
-                    </div>
-                    <div class="attach-item" onclick="toggleSticker()">
-                      <div class="attach-icon" style="background: #f59e0b">
-                        😊
-                      </div>
-                      <span style="font-size: 10px">Stiker</span>
+                      <span class="attach-label">Lokasi</span>
                     </div>
                   </div>
-                  <button
-                    class="btn-circle btn-attach"
-                    onclick="toggleAttachMenu()"
-                  >
-                    +
+                </div>
+
+                <div id="emojiPanel" class="emoji-panel">
+                  <div class="panel-tabs">
+                    <span class="panel-tab active" onclick="showTab('emoji')"
+                      >EMOJI</span
+                    >
+                    <span class="panel-tab" onclick="showTab('sticker')"
+                      >STIKER</span
+                    >
+                  </div>
+                  <div id="tabEmoji" class="emoji-grid"></div>
+                  <div
+                    id="tabSticker"
+                    class="sticker-grid"
+                    style="display: none"
+                  ></div>
+                </div>
+
+                <div class="chat-input-bar">
+                  <button class="icon-btn" onclick="toggleAttachMenu()">
+                    ⊕
                   </button>
                   <input
                     id="replyInput"
@@ -1278,38 +1350,10 @@
                     placeholder="Ketik pesan..."
                     autocomplete="off"
                   />
-                  <button id="sendReplyBtn" class="btn-circle btn-send">
-                    ➤
+                  <button class="icon-btn" onclick="toggleEmojiPanel()">
+                    ☺
                   </button>
-                </div>
-                <div id="stickerSheet" class="sticker-sheet">
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 10px;
-                    "
-                  >
-                    <b>Pilih Stiker</b
-                    ><button
-                      onclick="toggleSticker()"
-                      style="background: none; border: none; font-size: 20px"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div style="display: flex; gap: 10px; margin-bottom: 10px">
-                    <button class="btn small" onclick="renderStickers('emoji')">
-                      Emoji</button
-                    ><button
-                      class="btn small primary"
-                      onclick="renderStickers('sticker')"
-                    >
-                      Stiker
-                    </button>
-                  </div>
-                  <div id="stickerGrid" class="sticker-grid"></div>
+                  <button id="sendReplyBtn" class="btn-send-round">➤</button>
                 </div>
                 <input
                   type="file"
@@ -1412,7 +1456,6 @@
             Rp 5.000
           </div>
         </div>
-
         <label style="font-weight: 600; font-size: 14px"
           >Metode Pembayaran</label
         >
@@ -1442,7 +1485,6 @@
             📱 QRIS
           </button>
         </div>
-
         <div
           id="payCash"
           class="hidden"
@@ -1465,7 +1507,6 @@
             Ajukan Pembayaran Tunai
           </button>
         </div>
-
         <div
           id="payQris"
           class="hidden"
